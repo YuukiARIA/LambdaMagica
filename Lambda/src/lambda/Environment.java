@@ -17,6 +17,8 @@ import lambda.ast.Lambda;
 
 public class Environment
 {
+	public static final String APPLICATION_VERSION = "3.50";
+
 	public static final String KEY_CONTINUE_STEPS = "continue_steps";
 	public static final String KEY_TRACE = "trace";
 	public static final String KEY_SHORT = "short";

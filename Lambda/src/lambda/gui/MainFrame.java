@@ -26,6 +26,9 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import util.nullable.NullableBool;
+import util.nullable.NullableInt;
+
 import lambda.Environment;
 import lambda.LambdaInterpreter;
 import lambda.ast.ASTAbstract;
@@ -35,6 +38,7 @@ import lambda.ast.MacroExpander;
 import lambda.ast.parser.Lexer;
 import lambda.ast.parser.Parser;
 import lambda.ast.parser.ParserException;
+import lambda.conversion.Converter;
 import lambda.gui.macroview.MacroDefinitionView;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
@@ -49,6 +53,7 @@ public class MainFrame extends JFrame
 	private JButton buttonClear;
 
 	private JCheckBox checkShort;
+	private JCheckBox checkDataConv;
 	private JCheckBox checkAuto;
 	private JCheckBox checkTraceInAuto;
 	private JButton buttonStop;
@@ -66,7 +71,8 @@ public class MainFrame extends JFrame
 
 	public MainFrame()
 	{
-		setTitle("Lambda Magica");
+		setTitle("Lambda * Magica " + Environment.APPLICATION_VERSION);
+		setJMenuBar(new MainMenu(this));
 
 		JPanel leftPanel = new JPanel(new BorderLayout());
 
@@ -139,6 +145,17 @@ public class MainFrame extends JFrame
 		});
 		buttonPanel.add(checkShort);
 
+		checkDataConv = new JCheckBox("convert result as data");
+		checkDataConv.setSelected(env.getBoolean(Environment.KEY_DATA_CONV));
+		checkDataConv.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				env.set(Environment.KEY_DATA_CONV, checkDataConv.isSelected());
+			}
+		});
+		buttonPanel.add(checkDataConv);
+
 		checkAuto = new JCheckBox("auto reduction");
 		buttonPanel.add(checkAuto);
 
@@ -177,6 +194,7 @@ public class MainFrame extends JFrame
 		gl.setAutoCreateGaps(true);
 		gl.setHorizontalGroup(gl.createParallelGroup()
 			.addComponent(checkShort, 0, DEF_SIZE, INF_SIZE)
+			.addComponent(checkDataConv, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(checkAuto, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(checkTraceInAuto, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(buttonStop, 0, DEF_SIZE, INF_SIZE)
@@ -186,6 +204,7 @@ public class MainFrame extends JFrame
 		gl.setVerticalGroup(gl.createParallelGroup()
 			.addGroup(gl.createSequentialGroup()
 				.addComponent(checkShort)
+				.addComponent(checkDataConv)
 				.addComponent(checkAuto)
 				.addComponent(checkTraceInAuto)
 				.addComponent(buttonStop)
@@ -271,7 +290,14 @@ public class MainFrame extends JFrame
 	private boolean stepReduction()
 	{
 		IRedex redex = redexView.getSelectedRedex();
-		interpreter.step(env, redex);
+		if (redex != null)
+		{
+			interpreter.step(env, redex);
+		}
+		else
+		{
+			interpreter.step(env);
+		}
 		return interpreter.isNormal() || interpreter.isCyclic();
 	}
 
@@ -316,7 +342,26 @@ public class MainFrame extends JFrame
 			}
 			println("--> " + sb.toString());
 
+			if (terminated && env.getBoolean(Environment.KEY_DATA_CONV))
+			{
+				showConvertedData(lambda);
+			}
+
 			updateRedexView();
+		}
+	}
+
+	private void showConvertedData(Lambda lambda)
+	{
+		NullableInt natValue = Converter.toNat(lambda);
+		if (natValue.hasValue())
+		{
+			println("  = " + natValue + " (as nat)");
+		}
+		NullableBool boolValue = Converter.toBool(lambda);
+		if (boolValue.hasValue())
+		{
+			println("  = " + boolValue + " (as bool)");
 		}
 	}
 
@@ -391,6 +436,7 @@ public class MainFrame extends JFrame
 		}
 	}
 
+	// TODO: refactor
 	private void startAuto()
 	{
 		buttonStop.setEnabled(true);
@@ -436,6 +482,10 @@ public class MainFrame extends JFrame
 								sb.append("    (cyclic reduction)");
 							}
 							println(sb.toString());
+							if (env.getBoolean(Environment.KEY_DATA_CONV))
+							{
+								showConvertedData(lambda);
+							}
 							autoRunning = false;
 						}
 					}

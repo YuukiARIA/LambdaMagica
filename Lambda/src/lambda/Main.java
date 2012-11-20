@@ -392,7 +392,7 @@ public class Main
 
 	private static void repl()
 	{
-		System.out.println("Lambda Magica version 3.00");
+		System.out.println("Lambda * Magica version " + Environment.APPLICATION_VERSION);
 		System.out.println("- Type :? to see command help");
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
