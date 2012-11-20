@@ -29,6 +29,18 @@ public class ASTMacro extends Lambda implements IRedex
 		return Pair.of(l != this, l);
 	}
 
+	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env, IRedex redex)
+	{
+		if (this == redex)
+		{
+			return betaReduction(context, env);
+		}
+		else
+		{
+			return Pair.of(false, (Lambda)this);
+		}
+	}
+
 	protected Lambda substitute(IDContext context, String name, Lambda lambda)
 	{
 		return this;

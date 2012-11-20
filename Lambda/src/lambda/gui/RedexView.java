@@ -7,16 +7,24 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
+import lambda.ast.IRedex;
+import lambda.ast.Lambda;
+import lambda.ast.RedexFinder;
 import lambda.gui.lambdalabel.LambdaLabel;
+import lambda.gui.lambdalabel.LambdaLabelBuilder;
 import lambda.gui.lambdalabel.LambdaLabelDrawer;
 import lambda.gui.lambdalabel.LambdaLabelMetrics;
+import util.Pair;
 
 @SuppressWarnings("serial")
 public class RedexView extends JPanel
@@ -24,8 +32,9 @@ public class RedexView extends JPanel
 	private static final Color HOVER_BACK_COLOR = new Color(220, 220, 255);
 	private static final Color SELECTION_RECT_COLOR = new Color(40, 40, 255);
 
+	private LambdaLabelBuilder builder = new LambdaLabelBuilder();
+	private List<Pair<IRedex, LambdaLabel>> labels = new ArrayList<Pair<IRedex, LambdaLabel>>();
 	private Insets margin = new Insets(0, 0, 0, 0);
-	private List<LambdaLabel> labels = new ArrayList<LambdaLabel>();
 	private int height = 20;
 	private int maxWidth;
 	private int hoverIndex = -1;
@@ -51,14 +60,40 @@ public class RedexView extends JPanel
 		selectedIndex = -1;
 	}
 
-	public void addLabel(LambdaLabel l)
+	private void addLabel(IRedex r, LambdaLabel l)
 	{
-		labels.add(l);
+		labels.add(Pair.of(r, l));
 		maxWidth = Math.max(maxWidth, LambdaLabelMetrics.getWidth(getGraphics(), l));
 
 		int w = maxWidth + margin.left + margin.right;
 		int h = height * labels.size() + margin.top + margin.bottom;
 		setPreferredSize(new Dimension(w, h));
+	}
+
+	public void setRedexes(Lambda lambda)
+	{
+		clearLabels();
+		for (IRedex redex : RedexFinder.getRedexList(lambda))
+		{
+			LambdaLabel label = builder.createLambdaLabel(lambda, redex);
+			addLabel(redex, label);
+		}
+		setSelectedIndex(0);
+	}
+
+	public IRedex getSelectedRedex()
+	{
+		int i = getSelectedIndex();
+		if (0 <= i && i < labels.size())
+		{
+			return labels.get(i)._1;
+		}
+		return null;
+	}
+
+	public int getLabelCount()
+	{
+		return labels.size();
 	}
 
 	public int getSelectedIndex()
@@ -72,6 +107,25 @@ public class RedexView extends JPanel
 		{
 			selectedIndex = index;
 			repaint();
+		}
+	}
+
+	public void addActionListener(ActionListener l)
+	{
+		listenerList.add(ActionListener.class, l);
+	}
+
+	public void removeActionListener(ActionListener l)
+	{
+		listenerList.remove(ActionListener.class, l);
+	}
+
+	private void dispatchActionEvent()
+	{
+		ActionEvent e = new ActionEvent(this, 0, "selected");
+		for (ActionListener l : listenerList.getListeners(ActionListener.class))
+		{
+			l.actionPerformed(e);
 		}
 	}
 
@@ -108,7 +162,8 @@ public class RedexView extends JPanel
 		LambdaLabelDrawer drawer = new LambdaLabelDrawer();
 		for (int i = 0; i < labels.size(); i++)
 		{
-			drawer.draw(g, labels.get(i), 0, i * height, height);
+			Pair<IRedex, LambdaLabel> p = labels.get(i);
+			drawer.draw(g, p._2, 0, i * height, height);
 		}
 
 		if (selectedIndex != -1)
@@ -124,11 +179,7 @@ public class RedexView extends JPanel
 	{
 		public void mouseMoved(MouseEvent e)
 		{
-			hoverIndex = (e.getY() - margin.top) / height;
-			if (hoverIndex < 0 || labels.size() <= hoverIndex)
-			{
-				hoverIndex = -1;
-			}
+			updateHoverIndex(e);
 			repaint();
 		}
 
@@ -140,8 +191,25 @@ public class RedexView extends JPanel
 
 		public void mousePressed(MouseEvent e)
 		{
-			selectedIndex = hoverIndex;
-			repaint();
+			if (SwingUtilities.isLeftMouseButton(e))
+			{
+				updateHoverIndex(e);
+				selectedIndex = hoverIndex;
+				repaint();
+				if (e.getClickCount() == 2)
+				{
+					dispatchActionEvent();
+				}
+			}
+		}
+
+		private void updateHoverIndex(MouseEvent e)
+		{
+			hoverIndex = (e.getY() - margin.top) / height;
+			if (hoverIndex < 0 || labels.size() <= hoverIndex)
+			{
+				hoverIndex = -1;
+			}
 		}
 	}
 }

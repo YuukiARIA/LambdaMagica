@@ -13,7 +13,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -25,7 +24,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
@@ -35,12 +33,9 @@ import lambda.ast.ASTAbstract;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
-import lambda.ast.RedexFinder;
 import lambda.ast.parser.Lexer;
 import lambda.ast.parser.Parser;
 import lambda.ast.parser.ParserException;
-import lambda.gui.lambdalabel.LambdaLabel;
-import lambda.gui.lambdalabel.LambdaLabelBuilder;
 import lambda.gui.macroview.MacroDefinitionView;
 import lambda.gui.util.GUIUtils;
 import lambda.system.CommandDelegate;
@@ -49,10 +44,13 @@ import lambda.system.CommandProcessor;
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame
 {
+	private JTabbedPane tabbedPane;
+
 	private JTextField inputField;
 	private JButton buttonStep;
 	private JButton buttonClear;
 
+	private JCheckBox checkShort;
 	private JCheckBox checkAuto;
 	private JCheckBox checkTraceInAuto;
 	private JButton buttonStop;
@@ -132,6 +130,17 @@ public class MainFrame extends JFrame
 		});
 		buttonPanel.add(buttonClearMacros);
 
+		checkShort = new JCheckBox("short printing");
+		checkShort.setSelected(env.getBoolean(Environment.KEY_SHORT));
+		checkShort.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				env.set(Environment.KEY_SHORT, checkShort.isSelected());
+			}
+		});
+		buttonPanel.add(checkShort);
+
 		checkAuto = new JCheckBox("auto reduction");
 		buttonPanel.add(checkAuto);
 
@@ -163,33 +172,45 @@ public class MainFrame extends JFrame
 		});
 		buttonPanel.add(buttonStop);
 
+		final int DEF_SIZE = GroupLayout.DEFAULT_SIZE;
+		final int INF_SIZE = Short.MAX_VALUE;
 		GroupLayout gl = new GroupLayout(buttonPanel);
 		gl.setAutoCreateContainerGaps(true);
 		gl.setAutoCreateGaps(true);
 		gl.setHorizontalGroup(gl.createParallelGroup()
-			.addComponent(checkAuto)
-			.addComponent(checkTraceInAuto)
-			.addComponent(buttonStop)
-			.addComponent(buttonClear)
-			.addComponent(buttonClearMacros)
+			.addComponent(checkShort, 0, DEF_SIZE, INF_SIZE)
+			.addComponent(checkAuto, 0, DEF_SIZE, INF_SIZE)
+			.addComponent(checkTraceInAuto, 0, DEF_SIZE, INF_SIZE)
+			.addComponent(buttonStop, 0, DEF_SIZE, INF_SIZE)
+			.addComponent(buttonClear, 0, DEF_SIZE, INF_SIZE)
+			.addComponent(buttonClearMacros, 0, DEF_SIZE, INF_SIZE)
 		);
-		gl.setVerticalGroup(gl.createSequentialGroup()
-			.addComponent(checkAuto)
-			.addComponent(checkTraceInAuto)
-			.addComponent(buttonStop)
-			.addComponent(buttonClear)
-			.addComponent(buttonClearMacros)
+		gl.setVerticalGroup(gl.createParallelGroup()
+			.addGroup(gl.createSequentialGroup()
+				.addComponent(checkShort)
+				.addComponent(checkAuto)
+				.addComponent(checkTraceInAuto)
+				.addComponent(buttonStop)
+				.addComponent(buttonClear)
+				.addComponent(buttonClearMacros)
+			)
 		);
-		gl.linkSize(SwingConstants.HORIZONTAL, checkAuto, checkTraceInAuto, buttonStop, buttonClear, buttonClearMacros);
 		buttonPanel.setLayout(gl);
 
-		JTabbedPane tabbedPane = new JTabbedPane();
+		tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("General", buttonPanel);
 
 		redexView = new RedexView();
 		redexView.setBackground(Color.WHITE);
 		redexView.setFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 12));
 		redexView.setMargin(5, 5, 5, 5);
+		redexView.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				step();
+			}
+		});
 		tabbedPane.add("Redex", new JScrollPane(redexView));
 
 		macroView = new MacroDefinitionView();
@@ -251,7 +272,8 @@ public class MainFrame extends JFrame
 
 	private boolean stepReduction()
 	{
-		interpreter.step(env);
+		IRedex redex = redexView.getSelectedRedex();
+		interpreter.step(env, redex);
 		return interpreter.isNormal() || interpreter.isCyclic();
 	}
 
@@ -305,14 +327,7 @@ public class MainFrame extends JFrame
 		if (interpreter == null) return;
 
 		Lambda lambda = interpreter.getLambda();
-		List<IRedex> redexes = RedexFinder.getRedexList(lambda);
-		LambdaLabelBuilder builder = new LambdaLabelBuilder();
-		redexView.clearLabels();
-		for (IRedex redex : redexes)
-		{
-			final LambdaLabel label = builder.createLambdaLabel(lambda, redex);
-			redexView.addLabel(label);
-		}
+		redexView.setRedexes(lambda);
 		redexView.revalidate();
 		redexView.repaint();
 	}
@@ -366,6 +381,7 @@ public class MainFrame extends JFrame
 
 			if (!checkAuto.isSelected())
 			{
+				tabbedPane.setSelectedIndex(1);
 				updateRedexView();
 				buttonStep.setEnabled(true);
 				buttonStep.requestFocus();
@@ -517,7 +533,7 @@ public class MainFrame extends JFrame
 					String expr = "";
 					for (String s : params)
 					{
-						expr = expr + s + " ";
+						expr += s + " ";
 					}
 					try
 					{

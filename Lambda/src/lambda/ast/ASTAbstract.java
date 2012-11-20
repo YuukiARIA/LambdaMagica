@@ -41,6 +41,18 @@ public class ASTAbstract extends Lambda
 		return p.snd(this);
 	}
 
+	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env, IRedex redex)
+	{
+		IDContext nc = IDContext.deriveContext(context);
+		nc.addBoundedName(name);
+		Pair<Boolean, Lambda> p = e.betaReduction(nc, env, redex);
+		if (p._1)
+		{
+			return p.snd(new ASTAbstract(originalName, name, p._2));
+		}
+		return p.snd(this);
+	}
+
 	public Pair<Boolean, Lambda> etaReduction()
 	{
 		if (e instanceof ASTApply)

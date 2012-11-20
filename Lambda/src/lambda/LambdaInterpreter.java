@@ -1,11 +1,13 @@
 package lambda;
 
 import java.util.Set;
+
 import lambda.ast.ASTAbstract;
 import lambda.ast.ASTApply;
 import lambda.ast.ASTLiteral;
 import lambda.ast.ASTMacro;
 import lambda.ast.IDContext;
+import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.Lambda.SingleVisitor;
 import lambda.ast.VariableCollector;
@@ -47,6 +49,29 @@ public class LambdaInterpreter
 				}
 			}
 			Pair<Boolean, Lambda> ret = lambda.betaReduction(IDContext.createContext(), env);
+			isCyclic = LambdaMatcher.structuralEquivalent(lambda, ret._2);
+			lambda = ret._2;
+			isNormal = NormalFormChecker.isNormalForm(lambda);
+			return ret._1 && !isCyclic;
+		}
+		return false;
+	}
+
+	public boolean step(Environment env, IRedex redex)
+	{
+		if (!isNormal && !isCyclic)
+		{
+			if (isEtaEnabled)
+			{
+				Pair<Boolean, Lambda> ret = lambda.etaReduction();
+				if (ret._1)
+				{
+					lambda = ret._2;
+					isNormal = NormalFormChecker.isNormalForm(lambda);
+					return true;
+				}
+			}
+			Pair<Boolean, Lambda> ret = lambda.betaReduction(IDContext.createContext(), env, redex);
 			isCyclic = LambdaMatcher.structuralEquivalent(lambda, ret._2);
 			lambda = ret._2;
 			isNormal = NormalFormChecker.isNormalForm(lambda);
