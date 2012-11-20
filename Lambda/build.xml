@@ -45,7 +45,7 @@
 
 	<target name="dist" depends="mkdir_dist,mkdir_product,jar">
 		<exec executable="cp" dir=".">
-			<arg line="${target-jar} prelude.lm.txt readme.txt run.* ${dist}" />
+			<arg line="${target-jar} prelude.lm.txt readme.* run.* ${dist}" />
 		</exec>
 		<tar tarfile="${dir.dist}/${dist-tgz}" compression="gzip">
 			<tarfileset dir="." includes="${dist}/*.sh,${dist}/*.bat" mode="755" />
@@ -55,7 +55,7 @@
 
 	<target name="zip" depends="mkdir_dist,mkdir_product,jar">
 		<exec executable="cp" dir=".">
-			<arg line="${target-jar} prelude.lm.txt readme.txt run.* ${dist}" />
+			<arg line="${target-jar} prelude.lm.txt readme.* run.* ${dist}" />
 		</exec>
 		<zip destfile="${dir.dist}/${dist-zip}" encoding="UTF-8">
 			<zipfileset dir="." includes="${dist}/*.sh,${dist}/*.bat" filemode="755" />
