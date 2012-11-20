@@ -9,6 +9,14 @@
 
   An interpreter of untyped lambda calculus.
 
+1.1 Run
+
+  - Windows
+      Execute run.bat or lm.jar directly.
+
+  - Linux/Mac
+      Execute run.sh or lm.jar directly.
+
 
 2. Basics
 

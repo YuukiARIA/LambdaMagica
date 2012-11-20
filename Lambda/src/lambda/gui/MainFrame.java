@@ -2,17 +2,9 @@ package lambda.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
@@ -21,19 +13,20 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import javax.swing.GroupLayout;
 import javax.swing.JButton;
-import javax.swing.JDialog;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import lambda.Environment;
@@ -41,7 +34,6 @@ import lambda.LambdaInterpreter;
 import lambda.ast.ASTAbstract;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
-import lambda.ast.LambdaPrinter;
 import lambda.ast.MacroExpander;
 import lambda.ast.RedexFinder;
 import lambda.ast.parser.Lexer;
@@ -49,136 +41,32 @@ import lambda.ast.parser.Parser;
 import lambda.ast.parser.ParserException;
 import lambda.gui.lambdalabel.LambdaLabel;
 import lambda.gui.lambdalabel.LambdaLabelBuilder;
-import lambda.gui.lambdalabel.LambdaLabelDrawer;
-import lambda.gui.lambdalabel.LambdaLabelMetrics;
+import lambda.gui.macroview.MacroDefinitionView;
 import lambda.gui.util.GUIUtils;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
 
 @SuppressWarnings("serial")
-class RedexPanel extends JPanel
-{
-	private Insets margin = new Insets(0, 0, 0, 0);
-	private List<LambdaLabel> labels = new ArrayList<LambdaLabel>();
-	private int height = 20;
-	private int maxWidth;
-	private int hoverIndex = -1;
-	private int selectedIndex = -1;
-
-	public RedexPanel()
-	{
-		MouseHandler mh = new MouseHandler();
-		addMouseListener(mh);
-		addMouseMotionListener(mh);
-	}
-
-	public void setMargin(int top, int left, int bottom, int right)
-	{
-		margin.set(top, left, bottom, right);
-	}
-
-	public void clearLabels()
-	{
-		labels.clear();
-		maxWidth = 0;
-		hoverIndex = -1;
-		selectedIndex = -1;
-	}
-
-	public void addLabel(LambdaLabel l)
-	{
-		labels.add(l);
-		maxWidth = Math.max(maxWidth, LambdaLabelMetrics.getWidth(getGraphics(), l));
-
-		int w = maxWidth + margin.left + margin.right;
-		int h = height * labels.size() + margin.top + margin.bottom;
-		setPreferredSize(new Dimension(w, h));
-	}
-
-	public int getSelectedIndex()
-	{
-		return selectedIndex;
-	}
-
-	public void setSelectedIndex(int index)
-	{
-		if (0 <= index && index < labels.size())
-		{
-			selectedIndex = index;
-			repaint();
-		}
-	}
-
-	protected void paintComponent(Graphics g)
-	{
-		g.setColor(getBackground());
-		g.fillRect(0, 0, getWidth(), getHeight());
-
-		g.translate(margin.left, margin.top);
-
-		if (hoverIndex != -1)
-		{
-			g.setColor(new Color(200, 200, 255));
-			g.fillRect(0, hoverIndex * height, getWidth(), height);
-		}
-
-		Graphics2D g2 = (Graphics2D)g;
-		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
-
-		LambdaLabelDrawer drawer = new LambdaLabelDrawer();
-		for (int i = 0; i < labels.size(); i++)
-		{
-			drawer.draw(g, labels.get(i), 0, i * height, height);
-		}
-
-		if (selectedIndex != -1)
-		{
-			g.setColor(new Color(40, 40, 255));
-			g.drawRect(0, selectedIndex * height, getWidth(), height);
-		}
-
-		g.translate(-margin.left, -margin.top);
-	}
-
-	private class MouseHandler extends MouseAdapter
-	{
-		public void mouseMoved(MouseEvent e)
-		{
-			hoverIndex = (e.getY() - margin.top) / height;
-			if (hoverIndex < 0 || labels.size() <= hoverIndex)
-			{
-				hoverIndex = -1;
-			}
-			repaint();
-		}
-
-		public void mouseExited(MouseEvent e)
-		{
-			hoverIndex = -1;
-			repaint();
-		}
-
-		public void mousePressed(MouseEvent e)
-		{
-			selectedIndex = hoverIndex;
-			repaint();
-		}
-	}
-}
-
-@SuppressWarnings("serial")
 public class MainFrame extends JFrame
 {
-	private JTextField input;
+	private JTextField inputField;
 	private JButton buttonStep;
 	private JButton buttonClear;
-	private JButton buttonRedex;
-	private RedexPanel redexPanel;
+
+	private JCheckBox checkAuto;
+	private JCheckBox checkTraceInAuto;
+	private JButton buttonStop;
+
+	private RedexView redexView;
 	private JTextArea output;
+	private MacroDefinitionView macroView;
+
 	private Environment env = Environment.load("properties.txt");
 	private final CommandProcessor commands = new CommandProcessor();
 	private LambdaInterpreter interpreter;
+
+	private boolean autoRunning;
+	private Thread thread;
 
 	public MainFrame()
 	{
@@ -186,24 +74,23 @@ public class MainFrame extends JFrame
 
 		JPanel leftPanel = new JPanel(new BorderLayout());
 
-		input = new JTextField();
-		input.setFont(new Font("Consolas", Font.PLAIN, 12));
-		input.addActionListener(new ActionListener()
+		JPanel inputPanel = new JPanel(new BorderLayout());
+		inputField = new JTextField();
+		inputField.setFont(new Font("Consolas", Font.PLAIN, 12));
+		inputField.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				String s = input.getText().trim();
+				String s = inputField.getText().trim();
 				if (!s.isEmpty())
 				{
+					output.setText("");
+					inputField.setText("");
 					start(s);
-					input.setText("");
 				}
 			}
 		});
-		leftPanel.add(input, BorderLayout.NORTH);
-
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.setLayout(new GridLayout(0, 1, 2, 2));
+		inputPanel.add(inputField, BorderLayout.CENTER);
 
 		buttonStep = new JButton("step");
 		buttonStep.addActionListener(new ActionListener()
@@ -213,12 +100,16 @@ public class MainFrame extends JFrame
 				step();
 			}
 		});
-		buttonPanel.add(buttonStep);
+		buttonStep.setEnabled(false);
+		inputPanel.add(buttonStep, BorderLayout.EAST);
+
+		leftPanel.add(inputPanel, BorderLayout.NORTH);
+
+		JPanel buttonPanel = new JPanel();
 
 		output = new JTextArea();
+		output.setEditable(false);
 		output.setFont(new Font("Consolas", Font.PLAIN, 12));
-		JSplitPane split = new JSplitPane();
-		split.setLeftComponent(new JScrollPane());
 		leftPanel.add(new JScrollPane(output), BorderLayout.CENTER);
 
 		buttonClear = new JButton("clear output");
@@ -231,41 +122,101 @@ public class MainFrame extends JFrame
 		});
 		buttonPanel.add(buttonClear);
 
-		buttonRedex = new JButton("Redex");
-		buttonRedex.addActionListener(new ActionListener()
+		JButton buttonClearMacros = new JButton("clear macros");
+		buttonClearMacros.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				updateRedexView();
+				clearMacros();
 			}
 		});
-		buttonPanel.add(buttonRedex);
+		buttonPanel.add(buttonClearMacros);
 
-		redexPanel = new RedexPanel();
-		redexPanel.setBackground(Color.WHITE);
-		redexPanel.setFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 12));
-		redexPanel.setMargin(5, 5, 5, 5);
-		buttonPanel.add(new JScrollPane(redexPanel));
+		checkAuto = new JCheckBox("auto reduction");
+		buttonPanel.add(checkAuto);
+
+		checkTraceInAuto = new JCheckBox("show trace in auto mode");
+		buttonPanel.add(checkTraceInAuto);
+
+		buttonStop = new JButton("stop");
+		buttonStop.setEnabled(false);
+		buttonStop.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				if (thread != null)
+				{
+					autoRunning = false;
+					try
+					{
+						thread.join();
+					}
+					catch (InterruptedException ex)
+					{
+						ex.printStackTrace();
+					}
+					println("- STOPPED.");
+					buttonStop.setEnabled(false);
+					thread = null;
+				}
+			}
+		});
+		buttonPanel.add(buttonStop);
+
+		GroupLayout gl = new GroupLayout(buttonPanel);
+		gl.setAutoCreateContainerGaps(true);
+		gl.setAutoCreateGaps(true);
+		gl.setHorizontalGroup(gl.createParallelGroup()
+			.addComponent(checkAuto)
+			.addComponent(checkTraceInAuto)
+			.addComponent(buttonStop)
+			.addComponent(buttonClear)
+			.addComponent(buttonClearMacros)
+		);
+		gl.setVerticalGroup(gl.createSequentialGroup()
+			.addComponent(checkAuto)
+			.addComponent(checkTraceInAuto)
+			.addComponent(buttonStop)
+			.addComponent(buttonClear)
+			.addComponent(buttonClearMacros)
+		);
+		gl.linkSize(SwingConstants.HORIZONTAL, checkAuto, checkTraceInAuto, buttonStop, buttonClear, buttonClearMacros);
+		buttonPanel.setLayout(gl);
+
+		JTabbedPane tabbedPane = new JTabbedPane();
+		tabbedPane.addTab("General", buttonPanel);
+
+		redexView = new RedexView();
+		redexView.setBackground(Color.WHITE);
+		redexView.setFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 12));
+		redexView.setMargin(5, 5, 5, 5);
+		tabbedPane.add("Redex", new JScrollPane(redexView));
+
+		macroView = new MacroDefinitionView();
+		tabbedPane.addTab("Macros", macroView);
 
 		final JSplitPane sp = new JSplitPane();
+		sp.setContinuousLayout(true);
 		sp.setLeftComponent(leftPanel);
-		sp.setRightComponent(buttonPanel);
+		sp.setRightComponent(tabbedPane);
 		addWindowListener(new WindowAdapter()
 		{
 			public void windowOpened(WindowEvent e)
 			{
-				sp.setDividerLocation(0.5);
+				sp.setDividerLocation(0.7);
 				sp.setResizeWeight(0.5);
 			}
 		});
 		add(sp);
-		setSize(400, 300);
+		setSize(600, 500);
 
 		initializeCommands();
 	}
 
 	private void start(String text)
 	{
+		if (autoRunning) return;
+
 		text = text.trim();
 		if (text.startsWith(":"))
 		{
@@ -298,64 +249,55 @@ public class MainFrame extends JFrame
 		}
 	}
 
+	private boolean stepReduction()
+	{
+		interpreter.step(env);
+		return interpreter.isNormal() || interpreter.isCyclic();
+	}
+
 	private void step()
 	{
-		if (interpreter != null && !interpreter.isNormal())
+		if (interpreter == null) return;
+
+		if (!interpreter.isNormal())
 		{
-			interpreter.step(env);
+			boolean terminated = stepReduction();
 			Lambda lambda = interpreter.getLambda();
-			String s;
-			if (!interpreter.isNormal() && !interpreter.isCyclic())
+			StringBuilder sb = new StringBuilder();
+			if (!terminated)
 			{
-				s = lambda.toString();
-				if (env.getBoolean("short") && s.length() > 75)
+				String s = lambda.toString();
+				if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
 				{
-					s = s.substring(0, 35) + " ... " + s.substring(s.length() - 35, s.length());
+					sb.append(s.substring(0, 35));
+					sb.append(" ... ");
+					sb.append(s.substring(s.length() - 35, s.length()));
+				}
+				else
+				{
+					sb.append(s);
 				}
 			}
 			else
 			{
 				MacroExpander expander = new MacroExpander(env);
 				lambda = expander.expand(lambda);
-				s = lambda.toString();
+				sb.append(lambda.toString());
 				if (interpreter.isNormal())
 				{
-					s = s + "    (normal form)";
+					sb.append("    (normal form)");
 				}
 				else if (interpreter.isCyclic())
 				{
-					s = s + "    (cyclic reduction)";
+					sb.append("    (cyclic reduction)");
 				}
+				buttonStep.setEnabled(false);
+				buttonStop.setEnabled(false);
 			}
-			println("--> " + s);
+			println("--> " + sb.toString());
 
 			updateRedexView();
 		}
-	}
-
-	private void showRedex()
-	{
-		if (interpreter == null) return;
-
-		Lambda lambda = interpreter.getLambda();
-		List<IRedex> redexes = RedexFinder.getRedexList(lambda);
-		String s = "";
-		for (IRedex redex : redexes)
-		{
-			LambdaPrinter printer = new LambdaPrinter(true, redex);
-			s = s + printer.makeString(lambda) + "<br/>";
-		}
-		s = "<html>" + s + "</html>";
-		JLabel label = new JLabel(s);
-		label.setOpaque(true);
-		label.setBackground(Color.WHITE);
-		label.setFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 12));
-		JDialog dialog = new JDialog();
-		dialog.add(new JScrollPane(label));
-		dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		dialog.pack();
-		dialog.setLocationRelativeTo(null);
-		dialog.setVisible(true);
 	}
 
 	private void updateRedexView()
@@ -365,23 +307,23 @@ public class MainFrame extends JFrame
 		Lambda lambda = interpreter.getLambda();
 		List<IRedex> redexes = RedexFinder.getRedexList(lambda);
 		LambdaLabelBuilder builder = new LambdaLabelBuilder();
-		redexPanel.clearLabels();
+		redexView.clearLabels();
 		for (IRedex redex : redexes)
 		{
 			final LambdaLabel label = builder.createLambdaLabel(lambda, redex);
-			redexPanel.addLabel(label);
+			redexView.addLabel(label);
 		}
-		redexPanel.revalidate();
-		redexPanel.repaint();
+		redexView.revalidate();
+		redexView.repaint();
 	}
 
 	private void defineMacro(String name, String expr)
 	{
-		Parser parser = new Parser(new Lexer(expr));
 		try
 		{
-			Lambda lambda = parser.parse();
+			Lambda lambda = parseExpression(expr);
 			env.defineMacro(name, lambda);
+			macroView.addMacro(name, lambda);
 			String s = String.format("- <%s> is defined as %s", name, lambda);
 			println(s);
 		}
@@ -393,7 +335,7 @@ public class MainFrame extends JFrame
 
 	private void readMacro(String line)
 	{
-		if (line.contains("="))
+		if (line.indexOf('=') != -1)
 		{
 			String[] v = line.split("\\s*=\\s*");
 			if (v.length == 2)
@@ -409,23 +351,94 @@ public class MainFrame extends JFrame
 
 	private void evalLine(String line) throws ParserException
 	{
-		if (line.contains("="))
+		if (line.indexOf('=') != -1)
 		{
 			readMacro(line);
 		}
 		else
 		{
-			Parser parser = new Parser(new Lexer(line));
-			Lambda lambda = parser.parse();
+			Lambda lambda = parseExpression(line);
 
 			println(lambda.toString());
 			ASTAbstract.varid = 0;
 
 			interpreter = new LambdaInterpreter(lambda);
 
-			updateRedexView();
-			buttonStep.requestFocus();
+			if (!checkAuto.isSelected())
+			{
+				updateRedexView();
+				buttonStep.setEnabled(true);
+				buttonStep.requestFocus();
+			}
+			else
+			{
+				startAuto();
+			}
 		}
+	}
+
+	private void startAuto()
+	{
+		buttonStop.setEnabled(true);
+		thread = new Thread()
+		{
+			public void run()
+			{
+				try
+				{
+					while (autoRunning)
+					{
+						boolean terminated = stepReduction();
+						Lambda lambda = interpreter.getLambda();
+						if (!terminated && checkTraceInAuto.isSelected())
+						{
+							StringBuilder sb = new StringBuilder("--> ");
+							String s = lambda.toString();
+							if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
+							{
+								sb.append(s.substring(0, 35));
+								sb.append(" ... ");
+								sb.append(s.substring(s.length() - 35, s.length()));
+							}
+							else
+							{
+								sb.append(s);
+							}
+							println(sb.toString());
+						}
+						else if (terminated)
+						{
+							MacroExpander expander = new MacroExpander(env);
+							lambda = expander.expand(lambda);
+	
+							StringBuilder sb = new StringBuilder("--> ");
+							sb.append(lambda.toString());
+							if (interpreter.isNormal())
+							{
+								sb.append("    (normal form)");
+							}
+							else if (interpreter.isCyclic())
+							{
+								sb.append("    (cyclic reduction)");
+							}
+							println(sb.toString());
+							autoRunning = false;
+						}
+					}
+				}
+				finally
+				{
+					buttonStep.setEnabled(false);
+					buttonStop.setEnabled(false);
+					autoRunning = false;
+					thread = null;
+				}
+			}
+		};
+		thread.setName("AutoRunningThread");
+		thread.setDaemon(true);
+		autoRunning = true;
+		thread.start();
 	}
 
 	private void loadFile(String path)
@@ -448,14 +461,7 @@ public class MainFrame extends JFrame
 				if (c != -1) line = line.substring(0, c);
 				line = line.trim();
 				if (line.isEmpty()) continue;
-				try
-				{
-					evalLine(line);
-				}
-				catch (ParserException e)
-				{
-					println("- " + e.getMessage());
-				}
+				readMacro(line);
 			}
 			reader.close();
 		}
@@ -467,6 +473,13 @@ public class MainFrame extends JFrame
 		{
 			e.printStackTrace();
 		}
+	}
+
+	private void clearMacros()
+	{
+		env.clearMacros();
+		macroView.clearList();
+		println("- macros were cleared.");
 	}
 
 	private void initializeCommands()
@@ -506,11 +519,11 @@ public class MainFrame extends JFrame
 					{
 						expr = expr + s + " ";
 					}
-					Parser parser = new Parser(new Lexer(expr));
-					MacroExpander expander = new MacroExpander(env);
 					try
 					{
-						println(expander.expand(parser.parse()).toString());
+						Lambda lambda = parseExpression(expr);
+						MacroExpander expander = new MacroExpander(env);
+						println(expander.expand(lambda).toString());
 					}
 					catch (ParserException e)
 					{
@@ -519,53 +532,11 @@ public class MainFrame extends JFrame
 				}
 			}
 		});
-		commands.add(":s", new CommandDelegate()
-		{
-			public void commandInvoked(String[] params)
-			{
-				if (params.length >= 1)
-				{
-					try
-					{
-						env.set("continue_steps", Integer.parseInt(params[0]));
-					}
-					catch (NumberFormatException e)
-					{
-						println("- Illegal number format: " + params[0]);
-					}
-				}
-			}
-		});
-		commands.add(":t", new CommandDelegate()
-		{
-			public void commandInvoked(String[] params)
-			{
-				boolean b = false;
-				if (params.length >= 1)
-				{
-					b = params[0].equals("on");
-				}
-				env.set("trace", b);
-				println("- set trace " + (b ? "on" : "off"));
-			}
-		});
 		commands.add(":c", new CommandDelegate()
 		{
 			public void commandInvoked(String[] params)
 			{
-				env.clearMacros();
-				println("- macros were cleared.");
-			}
-		});
-		commands.add(":m", new CommandDelegate()
-		{
-			public void commandInvoked(String[] params)
-			{
-				for (Map.Entry<String, Lambda> e : env.getDefinedMacros().entrySet())
-				{
-					String s = String.format("- <%s> = %s", e.getKey(), e.getValue());
-					println(s);
-				}
+				clearMacros();
 			}
 		});
 		commands.add(":pwd", new CommandDelegate()
@@ -584,7 +555,6 @@ public class MainFrame extends JFrame
 				println("- :l <path>  - load lines from a text file.");
 				println("- :s <n>     - set the number of continuation steps.");
 				println("- :t [on]    - set trace mode. ");
-				println("- :m         - list defined macros.");
 				println("- :c         - clear all macros.");
 				println("- :pwd       - print working directory.");
 				println("- :q         - quit interpreter.");
@@ -592,11 +562,23 @@ public class MainFrame extends JFrame
 		});
 	}
 
-	private void println(String line)
+	private synchronized void println(String line)
 	{
 		output.append(line);
 		output.append(System.getProperty("line.separator"));
-		output.setCaretPosition(output.getText().length());
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				output.setCaretPosition(output.getText().length());
+			}
+		});
+	}
+
+	private static Lambda parseExpression(String s) throws ParserException
+	{
+		Parser parser = new Parser(new Lexer(s));
+		return parser.parse();
 	}
 
 	public static void main(String[] args)
