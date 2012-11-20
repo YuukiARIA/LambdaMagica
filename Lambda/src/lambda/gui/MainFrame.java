@@ -25,7 +25,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 
 import lambda.Environment;
 import lambda.LambdaInterpreter;
@@ -37,7 +36,6 @@ import lambda.ast.parser.Lexer;
 import lambda.ast.parser.Parser;
 import lambda.ast.parser.ParserException;
 import lambda.gui.macroview.MacroDefinitionView;
-import lambda.gui.util.GUIUtils;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
 
@@ -595,15 +593,5 @@ public class MainFrame extends JFrame
 	{
 		Parser parser = new Parser(new Lexer(s));
 		return parser.parse();
-	}
-
-	public static void main(String[] args)
-	{
-		GUIUtils.setLookAndFeelToSystem();
-
-		MainFrame f = new MainFrame();
-		f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		f.setLocationRelativeTo(null);
-		f.setVisible(true);
 	}
 }
