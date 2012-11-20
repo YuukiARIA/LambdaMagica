@@ -2,7 +2,7 @@
 
                   Lambda * Magica      ver 3.00
 
-      Simple Untyped Lambda Calculus Interpreter for Education
+         Untyped Lambda Calculus Interpreter for Education
 
 
 1. 概要
