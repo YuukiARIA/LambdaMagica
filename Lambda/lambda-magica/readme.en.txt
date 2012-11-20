@@ -1,6 +1,6 @@
 ﻿
 
-                  Lambda * Magica      ver 3.00
+                  Lambda * Magica      ver 3.50
 
          Untyped Lambda Calculus Interpreter for Education
 
@@ -16,6 +16,18 @@
 
   - Linux/Mac
       Execute run.sh or lm.jar directly.
+
+1.2 GUI mode (experimental)
+
+  To run the interpreter as GUI mode, type following command:
+
+    $ java -cp lm.jar lambda.gui.Main
+
+  Though the GUI mode is still under developed, more interactive features are
+  available.
+    - Step by step reduction
+    - Interactive redex selection
+    - Macro definition table            and more features in the future...
 
 
 2. Basics

@@ -1,6 +1,6 @@
 ﻿
 
-                  Lambda * Magica      ver 3.00
+                  Lambda * Magica      ver 3.50
 
          Untyped Lambda Calculus Interpreter for Education
 
@@ -16,6 +16,17 @@
 
   - Linux/Mac
       run.sh を実行（または lm.jar を直接実行）
+
+1.2 GUIモード（開発版）
+
+  次のコマンドにより実行すると、GUIインタプリタを起動することができる。
+
+    $ java -cp lm.jar lambda.gui.Main
+
+  GUIモードはまだ開発段階だが、CUIモードに比べていくつかのインタラクティブ機能が利用可能である。
+    - 1ステップずつの簡約
+    - インタラクティブな簡約箇所選択
+    - マクロテーブル
 
 
 2. 基本
@@ -78,6 +89,11 @@
 
 
 4. バージョン情報
+
+- ver 3.50 (November 21, 2012)
+  GUIモードをおおまかに実装、大体動く程度に
+  簡約基の表示と選択を実装、オートモードの実装
+  readme改訂
 
 - ver 3.00 (November 15, 2012)
   大幅にメンテナンス、修正、改善

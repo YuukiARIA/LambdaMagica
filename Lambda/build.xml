@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Lambda Magica" basedir="." default="distribute">
 
-	<property name="version" value="3.00" />
+	<property name="version" value="3.50" />
 	<property name="product-name" value="lambda-magica-${version}" />
 
 	<property name="src" location="src" />
@@ -35,8 +35,8 @@
 			includeantruntime="false" />
 	</target>
 
-	<target name="jar" depends="compile">
-		<jar destfile="${target-jar}" basedir="${bin}" compress="true" update="false">
+	<target name="jar" depends="mkdir_dist,compile">
+		<jar destfile="${dist}/${target-jar}" basedir="${bin}" compress="true" update="false">
 			<manifest>
 				<attribute name="Main-Class" value="lambda.Main" />
 			</manifest>
@@ -44,9 +44,6 @@
 	</target>
 
 	<target name="dist" depends="mkdir_dist,mkdir_product,jar">
-		<exec executable="cp" dir=".">
-			<arg line="${target-jar} prelude.lm.txt readme.* run.* ${dist}" />
-		</exec>
 		<tar tarfile="${dir.dist}/${dist-tgz}" compression="gzip">
 			<tarfileset dir="." includes="${dist}/*.sh,${dist}/*.bat" mode="755" />
 			<tarfileset dir="." includes="${dist}/**" excludes="**/*.sh,**/*.bat" />
@@ -54,9 +51,6 @@
 	</target>
 
 	<target name="zip" depends="mkdir_dist,mkdir_product,jar">
-		<exec executable="cp" dir=".">
-			<arg line="${target-jar} prelude.lm.txt readme.* run.* ${dist}" />
-		</exec>
 		<zip destfile="${dir.dist}/${dist-zip}" encoding="UTF-8">
 			<zipfileset dir="." includes="${dist}/*.sh,${dist}/*.bat" filemode="755" />
 			<zipfileset dir="." includes="${dist}/**" excludes="**/*.sh,**/*.bat" />
@@ -67,7 +61,8 @@
 	</target>
 
 	<target name="clean">
-		<delete dir="${bin}" file="${target-jar}" />
+		<delete dir="${bin}" />
+		<delete file="${dist}/${target-jar}" />
 		<delete dir="${dir.dist}" />
 	</target>
 
