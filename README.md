@@ -1,4 +1,4 @@
 LambdaMagica
 ============
 
-Simple Untyped Lambda Calculus Interpreter for Education
+Untyped Lambda Calculus Interpreter for Education
