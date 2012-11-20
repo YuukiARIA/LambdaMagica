@@ -1,0 +1,46 @@
+package lambda.ast;
+
+import lambda.Environment;
+import util.Pair;
+
+public class ASTLiteral extends Lambda
+{
+	public final String originalName;
+	public final String name;
+
+	public ASTLiteral(String name)
+	{
+		this(name, name);
+	}
+
+	public ASTLiteral(String originalName, String name)
+	{
+		this.originalName = originalName;
+		this.name = name;
+	}
+
+	public boolean isLiteral()
+	{
+		return true;
+	}
+
+	public int getPrec()
+	{
+		return 0;
+	}
+
+	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env)
+	{
+		return new Pair<Boolean, Lambda>(false, this);
+	}
+
+	protected Lambda substitute(IDContext context, String name, Lambda lambda)
+	{
+		return name.equals(this.name) ? lambda : this;
+	}
+
+	public <T, U> T accept(Lambda.Visitor<T, U> visitor, U param)
+	{
+		return visitor.visitLiteral(this, param);
+	}
+}

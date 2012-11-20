@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Lambda Magica" basedir="." default="distribute">
+
+	<property name="version" value="3.00" />
+	<property name="product-name" value="lambda-magica-${version}" />
+
+	<property name="src" location="src" />
+	<property name="bin" location="bin" />
+	<property name="dist" value="lambda-magica" />
+	<property name="dir.dist" location="product" />
+
+	<property name="java.encoding" value="UTF-8" />
+	<property name="java.target.version" value="1.6" />
+	<property name="java.source.version" value="1.6" />
+
+	<property name="target-jar" value="lm.jar" />
+	<property name="dist-tgz" value="${product-name}.tar.gz" />
+	<property name="dist-zip" value="${product-name}.zip" />
+
+	<target name="mkdir">
+		<mkdir dir="${bin}" />
+	</target>
+
+	<target name="mkdir_dist">
+		<mkdir dir="${dist}" />
+	</target>
+
+	<target name="mkdir_product">
+		<mkdir dir="${dir.dist}" />
+	</target>
+
+	<target name="compile" depends="mkdir">
+		<javac srcdir="${src}" destdir="${bin}" encoding="${java.encoding}"
+			target="${java.target.version}" source="${java.source.version}"
+			includeantruntime="false" />
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="${target-jar}" basedir="${bin}" compress="true" update="false">
+			<manifest>
+				<attribute name="Main-Class" value="lambda.Main" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="dist" depends="mkdir_dist,mkdir_product,jar">
+		<exec executable="cp" dir=".">
+			<arg line="${target-jar} prelude.lm.txt readme.txt run.* ${dist}" />
+		</exec>
+		<tar tarfile="${dir.dist}/${dist-tgz}" compression="gzip">
+			<tarfileset dir="." includes="${dist}/*.sh,${dist}/*.bat" mode="755" />
+			<tarfileset dir="." includes="${dist}/**" excludes="**/*.sh,**/*.bat" />
+		</tar>
+	</target>
+
+	<target name="zip" depends="mkdir_dist,mkdir_product,jar">
+		<exec executable="cp" dir=".">
+			<arg line="${target-jar} prelude.lm.txt readme.txt run.* ${dist}" />
+		</exec>
+		<zip destfile="${dir.dist}/${dist-zip}" encoding="UTF-8">
+			<zipfileset dir="." includes="${dist}/*.sh,${dist}/*.bat" filemode="755" />
+			<zipfileset dir="." includes="${dist}/**" excludes="**/*.sh,**/*.bat" />
+		</zip>
+	</target>
+
+	<target name="distribute" depends="dist,zip">
+	</target>
+
+	<target name="clean">
+		<delete dir="${bin}" file="${target-jar}" />
+		<delete dir="${dir.dist}" />
+	</target>
+
+</project>
