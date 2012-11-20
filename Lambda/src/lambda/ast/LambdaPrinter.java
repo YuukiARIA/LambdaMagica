@@ -3,20 +3,7 @@ package lambda.ast;
 public class LambdaPrinter extends Lambda.SingleVisitor<Lambda>
 {
 	private static final char LAMBDA_CHAR = '\\';
-	private boolean highlightRedex;
-	private IRedex redex;
 	private StringBuilder buf = new StringBuilder();
-
-	public LambdaPrinter()
-	{
-		this(false, null);
-	}
-
-	public LambdaPrinter(boolean highlightRedex, IRedex redex)
-	{
-		this.highlightRedex = highlightRedex;
-		this.redex = redex;
-	}
 
 	public static String toString(Lambda lambda)
 	{
@@ -53,19 +40,14 @@ public class LambdaPrinter extends Lambda.SingleVisitor<Lambda>
 		boolean lpar = l.isAbstraction();
 		boolean rpar = !r.isAtomic();
 
-		if (highlightRedex && app == redex) buf.append("<font color=\"#ff5555\">");
-
 		if (lpar) buf.append('(');
 		l.accept(this);
 		if (lpar) buf.append(')');
-
-		if (highlightRedex && app == redex) buf.append("</font><font color=\"#5555ff\">");
 
 		if (rpar) buf.append('(');
 		r.accept(this);
 		if (rpar) buf.append(')');
 
-		if (highlightRedex && app == redex) buf.append("</font>");
 		return app;
 	}
 
@@ -77,31 +59,9 @@ public class LambdaPrinter extends Lambda.SingleVisitor<Lambda>
 
 	public Lambda visitMacro(ASTMacro macro)
 	{
-		if (highlightRedex)
-		{
-			if (macro == redex)
-			{
-				buf.append("<font color=\"#55ff55\">");
-			}
-			buf.append("&lt;");
-		}
-		else
-		{
-			buf.append('<');
-		}
+		buf.append('<');
 		buf.append(macro.name);
-		if (highlightRedex)
-		{
-			buf.append("&gt;");
-			if (macro == redex)
-			{
-				buf.append("</font>");
-			}
-		}
-		else
-		{
-			buf.append('>');
-		}
+		buf.append('>');
 		return macro;
 	}
 }
