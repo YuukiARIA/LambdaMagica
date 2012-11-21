@@ -23,6 +23,9 @@ public class Environment
 	public static final String KEY_TRACE = "trace";
 	public static final String KEY_SHORT = "short";
 	public static final String KEY_DATA_CONV = "data_abstraction";
+	public static final String KEY_AUTO = "auto";
+	public static final String KEY_GUI_FONT_FAMILY = "gui.fontfamily";
+	public static final String KEY_GUI_FONT_SIZE = "gui.fontsize";
 
 	private String fileName;
 	private Map<String, Lambda> macros = new TreeMap<String, Lambda>();
@@ -34,6 +37,7 @@ public class Environment
 		set("trace", false);
 		set("short", true);
 		set("data_abstraction", false);
+		set("auto", false);
 	}
 
 	public void defineMacro(String name, Lambda lambda)

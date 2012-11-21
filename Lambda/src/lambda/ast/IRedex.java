@@ -1,5 +1,5 @@
 package lambda.ast;
 
-public abstract interface IRedex
+public interface IRedex
 {
 }

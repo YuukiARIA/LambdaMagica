@@ -10,7 +10,6 @@ public class ASTAbstract extends Lambda
 	public final String originalName;
 	public final String name;
 	public final Lambda e;
-	public static int varid = 0;
 
 	public ASTAbstract(String originalName, String name, Lambda e)
 	{
@@ -69,23 +68,15 @@ public class ASTAbstract extends Lambda
 				}
 			}
 		}
-		return new Pair<Boolean, Lambda>(false, this);
+		return Pair.of(false, (Lambda)this);
 	}
 
 	protected Lambda apply(IDContext context, Lambda lambda)
 	{
 		IDContext nc = IDContext.deriveContext(context);
-		nc.addBoundedName(this.name);
-		Lambda e2 = this.e.substitute(nc, this.name, lambda);
+		nc.addBoundedName(name);
+		Lambda e2 = e.substitute(nc, name, lambda);
 		return e2;
-	}
-
-	protected Lambda substitute2(IDContext context, String name, Lambda lambda)
-	{
-		String v = "$" + varid++;
-		ASTLiteral fresh = new ASTLiteral(this.originalName, v);
-		return new ASTAbstract(this.originalName, v, this.e.substitute(context,
-			this.name, fresh).substitute(context, name, lambda));
 	}
 
 	protected Lambda substitute(IDContext context, String name, Lambda lambda)

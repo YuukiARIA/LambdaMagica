@@ -28,7 +28,7 @@ public class ASTApply extends Lambda implements IRedex
 	{
 		if (lexpr.isAbstraction())
 		{
-			return new Pair<Boolean, Lambda>(true, lexpr.apply(context, rexpr));
+			return Pair.of(true, lexpr.apply(context, rexpr));
 		}
 
 		Pair<Boolean, Lambda> ret = lexpr.betaReduction(context, env);
@@ -43,14 +43,14 @@ public class ASTApply extends Lambda implements IRedex
 			return ret.snd(new ASTApply(lexpr, ret._2));
 		}
 
-		return new Pair<Boolean, Lambda>(false, this);
+		return Pair.of(false, (Lambda)this);
 	}
 
 	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env, IRedex redex)
 	{
 		if (this == redex && lexpr.isAbstraction())
 		{
-			return new Pair<Boolean, Lambda>(true, lexpr.apply(context, rexpr));
+			return Pair.of(true, lexpr.apply(context, rexpr));
 		}
 
 		Pair<Boolean, Lambda> ret = lexpr.betaReduction(context, env, redex);
@@ -65,7 +65,7 @@ public class ASTApply extends Lambda implements IRedex
 			return ret.snd(new ASTApply(lexpr, ret._2));
 		}
 
-		return new Pair<Boolean, Lambda>(false, this);
+		return Pair.of(false, (Lambda)this);
 	}
 
 	protected Lambda substitute(IDContext context, String name, Lambda lambda)

@@ -31,12 +31,12 @@ public class ASTLiteral extends Lambda
 
 	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env)
 	{
-		return new Pair<Boolean, Lambda>(false, this);
+		return Pair.of(false, (Lambda)this);
 	}
 
 	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env, IRedex redex)
 	{
-		return new Pair<Boolean, Lambda>(false, this);
+		return Pair.of(false, (Lambda)this);
 	}
 
 	protected Lambda substitute(IDContext context, String name, Lambda lambda)

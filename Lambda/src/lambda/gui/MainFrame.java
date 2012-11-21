@@ -26,12 +26,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-import util.nullable.NullableBool;
-import util.nullable.NullableInt;
-
 import lambda.Environment;
 import lambda.LambdaInterpreter;
-import lambda.ast.ASTAbstract;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
@@ -42,6 +38,8 @@ import lambda.conversion.Converter;
 import lambda.gui.macroview.MacroDefinitionView;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
+import util.nullable.NullableBool;
+import util.nullable.NullableInt;
 
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame
@@ -157,9 +155,25 @@ public class MainFrame extends JFrame
 		buttonPanel.add(checkDataConv);
 
 		checkAuto = new JCheckBox("auto reduction");
+		checkAuto.setSelected(env.getBoolean(Environment.KEY_AUTO));
+		checkAuto.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				env.set(Environment.KEY_AUTO, checkAuto.isSelected());
+			}
+		});
 		buttonPanel.add(checkAuto);
 
 		checkTraceInAuto = new JCheckBox("show trace in auto mode");
+		checkTraceInAuto.setSelected(env.getBoolean(Environment.KEY_TRACE));
+		checkTraceInAuto.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				env.set(Environment.KEY_TRACE, checkTraceInAuto.isSelected());
+			}
+		});
 		buttonPanel.add(checkTraceInAuto);
 
 		buttonStop = new JButton("stop");
@@ -418,7 +432,6 @@ public class MainFrame extends JFrame
 			Lambda lambda = parseExpression(line);
 
 			println(lambda.toString());
-			ASTAbstract.varid = 0;
 
 			interpreter = new LambdaInterpreter(lambda);
 

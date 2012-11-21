@@ -49,7 +49,8 @@ public class MainMenu extends JMenuBar
 	{
 		String s = "";
 		s += "Lambda * Magica version " + Environment.APPLICATION_VERSION + "\n";
-		s += "Release Date: 2012-11-21";
+		s += "Release Date: 2012-11-21\n";
+		s += "Copyright (C) 2011-2012 Yuuki.S All Rights Reserved.";
 		JOptionPane.showMessageDialog(owner, s, "Version Information", JOptionPane.INFORMATION_MESSAGE);
 	}
 }

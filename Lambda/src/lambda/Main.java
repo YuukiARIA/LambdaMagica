@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Scanner;
 
-import lambda.ast.ASTAbstract;
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
 import lambda.ast.parser.Lexer;
@@ -107,7 +106,6 @@ public class Main
 			}
 
 			System.out.println(lambda);
-			ASTAbstract.varid = 0;
 
 			LambdaInterpreter interpreter = new LambdaInterpreter(lambda);
 
