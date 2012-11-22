@@ -108,7 +108,8 @@ public class LambdaLabelDrawer implements Visitor<Boolean>
 	public void visit(RedexWrapper wrap, Boolean paren)
 	{
 		g.setColor(wrap.color);
-		g.fillRoundRect(point.x + 1, point.y - (fm.getAscent() + fm.getLeading()) + 1, wrap.getWidth() - 2, fm.getHeight() - 2, 10, 10);
+		int r = fm.getHeight();
+		g.fillRoundRect(point.x + 1, point.y - (fm.getAscent() + fm.getLeading()), wrap.getWidth() - 2, fm.getHeight(), r, r);
 		g.setColor(Color.BLACK);
 
 		point.x += 2;
@@ -121,5 +122,4 @@ public class LambdaLabelDrawer implements Visitor<Boolean>
 		g.drawString(s, point.x, point.y);
 		point.x += fm.stringWidth(s);
 	}
-	//(\xy.xy)(\xy.(\a.a)y)
 }
