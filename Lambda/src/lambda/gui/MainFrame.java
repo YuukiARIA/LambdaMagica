@@ -553,7 +553,7 @@ public class MainFrame extends JFrame
 						{
 							MacroExpander expander = new MacroExpander(env);
 							lambda = expander.expand(lambda);
-	
+
 							sb.append(lambda.toString());
 							if (interpreter.isNormal())
 							{
@@ -571,6 +571,10 @@ public class MainFrame extends JFrame
 							autoRunning = false;
 						}
 					}
+				}
+				catch (StackOverflowError e)
+				{
+					println("Fatal Error: generated too large structure");
 				}
 				finally
 				{
