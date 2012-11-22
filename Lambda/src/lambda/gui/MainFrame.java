@@ -47,6 +47,7 @@ import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
 import util.nullable.NullableBool;
 import util.nullable.NullableInt;
+import extgui.LineEditor;
 import extgui.flatsplitpane.FlatSplitPane;
 
 @SuppressWarnings("serial")
@@ -84,7 +85,7 @@ public class MainFrame extends JFrame
 		JPanel leftPanel = new JPanel(new BorderLayout());
 
 		JPanel inputPanel = new JPanel(new BorderLayout());
-		inputField = new JTextField();
+		inputField = new LineEditor();
 		inputField.setFont(env.getGUIFont());
 		inputField.addActionListener(new ActionListener()
 		{
