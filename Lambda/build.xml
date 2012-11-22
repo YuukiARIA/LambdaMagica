@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Lambda Magica" basedir="." default="distribute">
 
-	<property name="version" value="3.50" />
+	<property name="version" value="3.60" />
 	<property name="product-name" value="lambda-magica-${version}" />
 
 	<property name="src" location="src" />
@@ -38,7 +38,7 @@
 	<target name="jar" depends="mkdir_dist,compile">
 		<jar destfile="${dist}/${target-jar}" basedir="${bin}" compress="true" update="false">
 			<manifest>
-				<attribute name="Main-Class" value="lambda.Main" />
+				<attribute name="Main-Class" value="lambda.gui.Main" />
 			</manifest>
 		</jar>
 	</target>
@@ -63,7 +63,6 @@
 	<target name="clean">
 		<delete dir="${bin}" />
 		<delete file="${dist}/${target-jar}" />
-		<delete dir="${dir.dist}" />
 	</target>
 
 </project>

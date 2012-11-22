@@ -1,8 +1,10 @@
 ﻿
 
-                  Lambda * Magica      ver 3.50
+                  Lambda * Magica      ver 3.60
 
          Untyped Lambda Calculus Interpreter for Education
+
+        Copyright (C) 2011-2012 Yuuki.S All Rights Reserved.
 
 
 1. Introduction
@@ -17,17 +19,11 @@
   - Linux/Mac
       Execute run.sh or lm.jar directly.
 
-1.2 GUI mode (experimental)
+1.2 Run as CUI (old) mode
 
-  To run the interpreter as GUI mode, type following command:
+  To run the interpreter as CUI (old) mode, type following command:
 
-    $ java -cp lm.jar lambda.gui.Main
-
-  Though the GUI mode is still under developed, more interactive features are
-  available.
-    - Step by step reduction
-    - Interactive redex selection
-    - Macro definition table            and more features in the future...
+    $ java -cp lm.jar lambda.Main
 
 
 2. Basics
@@ -64,6 +60,10 @@
                 --> <id>
                 --> (\x.x)
 
+  Undefined macros are not expanded.
+  In the case that all redexes in an expression are undefined macros, the
+  expression is redarded as normal form.
+
   Basic macros commonly used in untyped lambda calculus are defined in
   prelude.lm.txt, attached in the package.
   Type ':l prelude' to load this.
@@ -91,6 +91,17 @@
 
 
 4. Versions
+
+- ver 3.60 (November 23, 2012)
+  maintained GUI mode, set GUI mode as default lauch mode
+  implemented font resizing
+  implemented line editor holding history
+  handle StackOverflowError (when calculation diverged) in auto-mode
+
+- ver 3.50 (November 21, 2012)
+  implemented GUI mode.
+  implemented redex viewer/selector, auto-mode
+  revised readme
 
 - ver 3.00 (November 15, 2012)
   maintained, fixed, and improved considerably.
