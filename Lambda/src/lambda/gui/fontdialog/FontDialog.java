@@ -9,11 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingWorker;
@@ -21,7 +24,7 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import lambda.gui.fontdialog.event.FontApplyListener;
+import lambda.gui.fontdialog.event.FontUpdateListener;
 
 @SuppressWarnings("serial")
 public class FontDialog extends JDialog
@@ -29,15 +32,16 @@ public class FontDialog extends JDialog
 	private String initSelectedName;
 	private JComboBox familyNames;
 	private JSpinner fontSize;
+	private JLabel labelFontAddition;
+	private int fontAddition;
 	private boolean approved;
 
-	private List<FontApplyListener> fontApplyListeners = new ArrayList<FontApplyListener>();
+	private List<FontUpdateListener> fontApplyListeners = new ArrayList<FontUpdateListener>();
 
 	public FontDialog()
 	{
-		setTitle("Font");
+		setTitle("Font Setting");
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		setResizable(false);
 
 		familyNames = new JComboBox();
 		Dimension dim = familyNames.getPreferredSize();
@@ -49,7 +53,7 @@ public class FontDialog extends JDialog
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				dispatchApplyEvent();
+				dispatchFontFamilyChangeEvent();
 			}
 		});
 		add(familyNames);
@@ -88,10 +92,36 @@ public class FontDialog extends JDialog
 		{
 			public void stateChanged(ChangeEvent e)
 			{
-				dispatchApplyEvent();
+				dispatchFontSizeChangeEvent();
 			}
 		});
 		add(fontSize);
+
+		JPanel panelAddition = new JPanel();
+		panelAddition.setBorder(BorderFactory.createTitledBorder("UI Font Size"));
+		labelFontAddition = new JLabel("+0");
+		panelAddition.add(labelFontAddition);
+		JButton buttonInc = new JButton("+");
+		buttonInc.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				setFontAddition(getFontAddition() + 1);
+				dispatchUIFontAdditionChangeEvent();
+			}
+		});
+		panelAddition.add(buttonInc);
+		JButton buttonDec = new JButton("-");
+		buttonDec.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				setFontAddition(getFontAddition() - 1);
+				dispatchUIFontAdditionChangeEvent();
+			}
+		});
+		panelAddition.add(buttonDec);
+		add(panelAddition);
 
 		JButton buttonOK = new JButton("OK");
 		buttonOK.addActionListener(new ActionListener()
@@ -99,7 +129,6 @@ public class FontDialog extends JDialog
 			public void actionPerformed(ActionEvent e)
 			{
 				approved = true;
-				dispatchApplyEvent();
 				dispose();
 			}
 		});
@@ -120,9 +149,12 @@ public class FontDialog extends JDialog
 		gl.setAutoCreateContainerGaps(true);
 		gl.setAutoCreateGaps(true);
 		gl.setHorizontalGroup(gl.createParallelGroup(Alignment.TRAILING)
-			.addGroup(gl.createSequentialGroup()
-				.addComponent(familyNames)
-				.addComponent(fontSize)
+			.addGroup(gl.createParallelGroup()
+				.addGroup(gl.createSequentialGroup()
+					.addComponent(familyNames)
+					.addComponent(fontSize)
+				)
+				.addComponent(panelAddition)
 			)
 			.addGroup(gl.createSequentialGroup()
 				.addComponent(buttonOK)
@@ -134,6 +166,7 @@ public class FontDialog extends JDialog
 				.addComponent(familyNames)
 				.addComponent(fontSize)
 			)
+			.addComponent(panelAddition)
 			.addGroup(gl.createParallelGroup(Alignment.BASELINE)
 				.addComponent(buttonOK)
 				.addComponent(buttonCancel)
@@ -163,6 +196,12 @@ public class FontDialog extends JDialog
 		fontSize.setValue(size);
 	}
 
+	public void setFontAddition(int addition)
+	{
+		fontAddition = addition;
+		labelFontAddition.setText(String.format("%+d", fontAddition));
+	}
+
 	public String getSelectedFamilyName()
 	{
 		return (String)familyNames.getSelectedItem();
@@ -171,6 +210,11 @@ public class FontDialog extends JDialog
 	public int getSelectedFontSize()
 	{
 		return (Integer)fontSize.getValue();
+	}
+
+	public int getFontAddition()
+	{
+		return fontAddition;
 	}
 
 	public boolean isApproved()
@@ -191,21 +235,36 @@ public class FontDialog extends JDialog
 		return approved;
 	}
 
-	public void addFontApplyListener(FontApplyListener l)
+	public void addFontApplyListener(FontUpdateListener l)
 	{
 		fontApplyListeners.add(l);
 	}
 
-	public void removeFontApplyListener(FontApplyListener l)
+	public void removeFontApplyListener(FontUpdateListener l)
 	{
 		fontApplyListeners.remove(l);
 	}
 
-	private void dispatchApplyEvent()
+	private void dispatchFontFamilyChangeEvent()
 	{
-		for (FontApplyListener l : fontApplyListeners)
+		for (FontUpdateListener l : fontApplyListeners)
 		{
-			l.applied(getSelectedFamilyName(), getSelectedFontSize());
+			l.fontFamilyChanged(getSelectedFamilyName());
+		}
+	}
+
+	private void dispatchFontSizeChangeEvent()
+	{
+		for (FontUpdateListener l : fontApplyListeners)
+		{
+			l.fontSizeChanged(getSelectedFontSize());
+		}
+	}
+	private void dispatchUIFontAdditionChangeEvent()
+	{
+		for (FontUpdateListener l : fontApplyListeners)
+		{
+			l.uiFontAdditionChanged(getFontAddition());
 		}
 	}
 }
