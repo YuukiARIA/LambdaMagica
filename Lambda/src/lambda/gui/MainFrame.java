@@ -105,10 +105,19 @@ public class MainFrame extends JFrame
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				step();
+				String s = inputField.getText().trim();
+				if (!s.isEmpty())
+				{
+					output.setText("");
+					inputField.setText("");
+					start(s);
+				}
+				else
+				{
+					step();
+				}
 			}
 		});
-		buttonStep.setEnabled(false);
 		inputPanel.add(buttonStep, BorderLayout.EAST);
 
 		leftPanel.add(inputPanel, BorderLayout.NORTH);
@@ -407,7 +416,6 @@ public class MainFrame extends JFrame
 				{
 					sb.append("    (cyclic reduction)");
 				}
-				buttonStep.setEnabled(false);
 				buttonStop.setEnabled(false);
 			}
 			println(sb.toString());
@@ -495,7 +503,6 @@ public class MainFrame extends JFrame
 			{
 				tabbedPane.setSelectedIndex(1);
 				updateRedexView();
-				buttonStep.setEnabled(true);
 				buttonStep.requestFocus();
 			}
 			else
@@ -565,7 +572,6 @@ public class MainFrame extends JFrame
 				}
 				finally
 				{
-					buttonStep.setEnabled(false);
 					buttonStop.setEnabled(false);
 					autoRunning = false;
 					thread = null;
