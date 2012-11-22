@@ -1,6 +1,7 @@
 package lambda.gui.macroview;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,6 +43,15 @@ public class MacroDefinitionView extends JPanel
 		macroTable.getTableHeader().setReorderingAllowed(false);
 		macroTable.setRowSorter(new TableRowSorter<TableModel>(tableModel));
 		add(new JScrollPane(macroTable), BorderLayout.CENTER);
+	}
+
+	public void setFont(Font font)
+	{
+		super.setFont(font);
+		if (macroTable != null)
+		{
+			macroTable.setFont(font);
+		}
 	}
 
 	public void addMacro(String name, Lambda def)
