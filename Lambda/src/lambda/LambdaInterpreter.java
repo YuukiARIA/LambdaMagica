@@ -20,6 +20,7 @@ public class LambdaInterpreter
 	private boolean isEtaEnabled;
 	private boolean isNormal;
 	private boolean isCyclic;
+	private int stepCount;
 
 	public LambdaInterpreter(Lambda sourceLambda)
 	{
@@ -32,6 +33,7 @@ public class LambdaInterpreter
 		lambda = sourceLambda;
 		isNormal = false;
 		isCyclic = false;
+		stepCount = 0;
 	}
 
 	public boolean step(Environment env)
@@ -52,6 +54,10 @@ public class LambdaInterpreter
 			isCyclic = LambdaMatcher.structuralEquivalent(lambda, ret._2);
 			lambda = ret._2;
 			isNormal = NormalFormChecker.isNormalForm(lambda);
+			if (ret._1)
+			{
+				stepCount++;
+			}
 			return ret._1 && !isCyclic;
 		}
 		return false;
@@ -75,9 +81,18 @@ public class LambdaInterpreter
 			isCyclic = LambdaMatcher.structuralEquivalent(lambda, ret._2);
 			lambda = ret._2;
 			isNormal = NormalFormChecker.isNormalForm(lambda);
+			if (ret._1)
+			{
+				stepCount++;
+			}
 			return ret._1 && !isCyclic;
 		}
 		return false;
+	}
+
+	public int getStep()
+	{
+		return stepCount;
 	}
 
 	public boolean isNormal()

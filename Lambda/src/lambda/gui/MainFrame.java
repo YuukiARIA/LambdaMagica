@@ -140,8 +140,8 @@ public class MainFrame extends JFrame
 		});
 		buttonPanel.add(buttonClearMacros);
 
-		//checkPrintStep = createOptionCheckBox(Environment.KEY_PRINT_STEP, "print step");
-		//buttonPanel.add(checkPrintStep);
+		checkPrintStep = createOptionCheckBox(Environment.KEY_PRINT_STEP, "print step");
+		buttonPanel.add(checkPrintStep);
 
 		checkShort = createOptionCheckBox(Environment.KEY_SHORT, "short printing");
 		buttonPanel.add(checkShort);
@@ -186,6 +186,7 @@ public class MainFrame extends JFrame
 		gl.setAutoCreateContainerGaps(true);
 		gl.setAutoCreateGaps(true);
 		gl.setHorizontalGroup(gl.createParallelGroup()
+			.addComponent(checkPrintStep, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(checkShort, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(checkDataConv, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(checkAuto, 0, DEF_SIZE, INF_SIZE)
@@ -196,6 +197,7 @@ public class MainFrame extends JFrame
 		);
 		gl.setVerticalGroup(gl.createParallelGroup()
 			.addGroup(gl.createSequentialGroup()
+				.addComponent(checkPrintStep)
 				.addComponent(checkShort)
 				.addComponent(checkDataConv)
 				.addComponent(checkAuto)
@@ -373,6 +375,11 @@ public class MainFrame extends JFrame
 			boolean terminated = stepReduction();
 			Lambda lambda = interpreter.getLambda();
 			StringBuilder sb = new StringBuilder();
+			if (env.getBoolean(Environment.KEY_PRINT_STEP))
+			{
+				sb.append(String.format("%3d: ", interpreter.getStep()));
+			}
+			sb.append("--> ");
 			if (!terminated)
 			{
 				String s = lambda.toString();
@@ -403,7 +410,7 @@ public class MainFrame extends JFrame
 				buttonStep.setEnabled(false);
 				buttonStop.setEnabled(false);
 			}
-			println("--> " + sb.toString());
+			println(sb.toString());
 
 			if (terminated && env.getBoolean(Environment.KEY_DATA_CONV))
 			{
@@ -512,9 +519,14 @@ public class MainFrame extends JFrame
 					{
 						boolean terminated = stepReduction();
 						Lambda lambda = interpreter.getLambda();
+						StringBuilder sb = new StringBuilder();
+						if (env.getBoolean(Environment.KEY_PRINT_STEP))
+						{
+							sb.append(String.format("%3d: ", interpreter.getStep()));
+						}
+						sb.append("--> ");
 						if (!terminated && checkTraceInAuto.isSelected())
 						{
-							StringBuilder sb = new StringBuilder("--> ");
 							String s = lambda.toString();
 							if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
 							{
@@ -533,7 +545,6 @@ public class MainFrame extends JFrame
 							MacroExpander expander = new MacroExpander(env);
 							lambda = expander.expand(lambda);
 	
-							StringBuilder sb = new StringBuilder("--> ");
 							sb.append(lambda.toString());
 							if (interpreter.isNormal())
 							{
