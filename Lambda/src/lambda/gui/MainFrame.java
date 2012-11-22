@@ -47,6 +47,7 @@ import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
 import util.nullable.NullableBool;
 import util.nullable.NullableInt;
+import extgui.flatsplitpane.FlatSplitPane;
 
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame
@@ -238,7 +239,7 @@ public class MainFrame extends JFrame
 		macroView.setFont(env.getGUIFont());
 		tabbedPane.addTab("Macros", macroView);
 
-		final JSplitPane sp = new JSplitPane();
+		final JSplitPane sp = new FlatSplitPane();
 		sp.setContinuousLayout(true);
 		sp.setLeftComponent(leftPanel);
 		sp.setRightComponent(tabbedPane);

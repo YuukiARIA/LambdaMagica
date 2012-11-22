@@ -21,6 +21,7 @@ public class MainMenu extends JMenuBar
 	public MainMenu(JFrame ownerFrame)
 	{
 		owner = ownerFrame;
+		setBorder(null);
 
 		JMenu menuFile = new JMenu("File");
 		add(menuFile);
