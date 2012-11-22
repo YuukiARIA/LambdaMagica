@@ -109,16 +109,16 @@ public class Main
 
 			LambdaInterpreter interpreter = new LambdaInterpreter(lambda);
 
-			int continueSteps = env.getInt("continue_steps", 500);
+			int continueSteps = env.getInt(Environment.KEY_CONTINUE_STEPS, 500);
 			int step = 1;
 			boolean interrupted = false;
 
 			while (interpreter.step(env))
 			{
-				if (env.getBoolean("trace"))
+				if (env.getBoolean(Environment.KEY_TRACE))
 				{
 					String s = interpreter.getLambda().toString();
-					if ((env.getBoolean("short")) && (s.length() > 75))
+					if ((env.getBoolean(Environment.KEY_SHORT)) && (s.length() > 75))
 					{
 						s = s.substring(0, 35) + " ... " + s.substring(s.length() - 35, s.length());
 					}
@@ -160,7 +160,7 @@ public class Main
 			}
 			System.out.println();
 
-			if (env.getBoolean("data_abstraction"))
+			if (env.getBoolean(Environment.KEY_DATA_CONV))
 			{
 				NullableInt natValue = Converter.toNat(interpreter.getLambda());
 				if (natValue.hasValue())
@@ -252,7 +252,7 @@ public class Main
 						expr = expr + s + " ";
 						}
 					Parser parser = new Parser(new Lexer(expr));
-					MacroExpander expander = new MacroExpander(Main.env);
+					MacroExpander expander = new MacroExpander(env);
 					try
 					{
 						System.out.println(expander.expand(parser.parse()));
@@ -275,7 +275,7 @@ public class Main
 						int n = Integer.parseInt(params[0]);
 						if (n >= 0)
 						{
-							Main.env.set("continue_steps", n);
+							env.set(Environment.KEY_CONTINUE_STEPS, n);
 							System.out.print("- set continuation steps to ");
 							if (n != 0)
 							{
@@ -298,7 +298,7 @@ public class Main
 				}
 				else
 				{
-					System.out.println("- continuation steps is " + Main.env.getInt("continue_steps", 500));
+					System.out.println("- continuation steps is " + env.getInt(Environment.KEY_CONTINUE_STEPS, 500));
 				}
 			}
 		});
@@ -312,7 +312,7 @@ public class Main
 					if ((s.equals("on")) || (s.equals("off")))
 					{
 						boolean b = params[0].equals("on");
-						env.set("trace", b);
+						env.set(Environment.KEY_TRACE, b);
 						System.out.println("- set trace " + (b ? "on" : "off"));
 					}
 					else
@@ -322,7 +322,7 @@ public class Main
 				}
 				else
 				{
-					System.out.println("- trace is " + (env.getBoolean("trace") ? "on" : "off"));
+					System.out.println("- trace is " + (env.getBoolean(Environment.KEY_TRACE) ? "on" : "off"));
 				}
 			}
 		});
@@ -352,8 +352,8 @@ public class Main
 		{
 			public void commandInvoked(String[] params)
 			{
-				boolean b = !env.getBoolean("short");
-				env.set("short", b);
+				boolean b = !env.getBoolean(Environment.KEY_SHORT);
+				env.set(Environment.KEY_SHORT, b);
 				System.out.println("- set short mode " + (b ? "on" : "off"));
 			}
 		});
@@ -361,8 +361,8 @@ public class Main
 		{
 			public void commandInvoked(String[] params)
 			{
-				boolean b = !env.getBoolean("data_abstraction");
-				env.set("data_abstraction", b);
+				boolean b = !env.getBoolean(Environment.KEY_DATA_CONV);
+				env.set(Environment.KEY_DATA_CONV, b);
 				System.out.println("- set data conversion mode " + (b ? "on" : "off"));
 			}
 		});
