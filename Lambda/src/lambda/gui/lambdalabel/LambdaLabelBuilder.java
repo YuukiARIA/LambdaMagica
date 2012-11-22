@@ -37,8 +37,8 @@ public class LambdaLabelBuilder
 			LambdaLabel left = app.lexpr.accept(this), right = app.rexpr.accept(this);
 			if (app == redex)
 			{
-				left = LambdaLabel.wrap(left, new Color(255, 120, 120, 180));
-				right = LambdaLabel.wrap(right, new Color(120, 120, 255, 180));
+				left = LambdaLabel.wrap(left, new Color(255, 220, 220, 200));
+				right = LambdaLabel.wrap(right, new Color(220, 220, 255, 200));
 			}
 			return LambdaLabel.apply(left, right);
 		}
@@ -53,7 +53,7 @@ public class LambdaLabelBuilder
 			LambdaLabel label = LambdaLabel.macro(m.name);
 			if (m == redex)
 			{
-				label = LambdaLabel.wrap(label, new Color(120, 255, 120, 180));
+				label = LambdaLabel.wrap(label, new Color(220, 255, 220, 200));
 			}
 			return label;
 		}

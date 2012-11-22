@@ -3,8 +3,10 @@ package lambda.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
@@ -14,9 +16,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.GroupLayout;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -24,6 +30,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import lambda.Environment;
@@ -50,6 +57,7 @@ public class MainFrame extends JFrame
 	private JButton buttonStep;
 	private JButton buttonClear;
 
+	private JCheckBox checkPrintStep;
 	private JCheckBox checkShort;
 	private JCheckBox checkDataConv;
 	private JCheckBox checkAuto;
@@ -60,7 +68,7 @@ public class MainFrame extends JFrame
 	private JTextArea output;
 	private MacroDefinitionView macroView;
 
-	private Environment env = Environment.load("properties.txt");
+	private Environment env = Environment.getEnvironment();
 	private final CommandProcessor commands = new CommandProcessor();
 	private LambdaInterpreter interpreter;
 
@@ -76,7 +84,7 @@ public class MainFrame extends JFrame
 
 		JPanel inputPanel = new JPanel(new BorderLayout());
 		inputField = new JTextField();
-		inputField.setFont(new Font("Consolas", Font.PLAIN, 12));
+		inputField.setFont(env.getGUIFont());
 		inputField.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -109,7 +117,7 @@ public class MainFrame extends JFrame
 
 		output = new JTextArea();
 		output.setEditable(false);
-		output.setFont(new Font("Consolas", Font.PLAIN, 12));
+		output.setFont(env.getGUIFont());
 		leftPanel.add(new JScrollPane(output), BorderLayout.CENTER);
 
 		buttonClear = new JButton("clear output");
@@ -132,48 +140,19 @@ public class MainFrame extends JFrame
 		});
 		buttonPanel.add(buttonClearMacros);
 
-		checkShort = new JCheckBox("short printing");
-		checkShort.setSelected(env.getBoolean(Environment.KEY_SHORT));
-		checkShort.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				env.set(Environment.KEY_SHORT, checkShort.isSelected());
-			}
-		});
+		//checkPrintStep = createOptionCheckBox(Environment.KEY_PRINT_STEP, "print step");
+		//buttonPanel.add(checkPrintStep);
+
+		checkShort = createOptionCheckBox(Environment.KEY_SHORT, "short printing");
 		buttonPanel.add(checkShort);
 
-		checkDataConv = new JCheckBox("convert result as data");
-		checkDataConv.setSelected(env.getBoolean(Environment.KEY_DATA_CONV));
-		checkDataConv.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				env.set(Environment.KEY_DATA_CONV, checkDataConv.isSelected());
-			}
-		});
+		checkDataConv = createOptionCheckBox(Environment.KEY_DATA_CONV, "convert result as data");
 		buttonPanel.add(checkDataConv);
 
-		checkAuto = new JCheckBox("auto reduction");
-		checkAuto.setSelected(env.getBoolean(Environment.KEY_AUTO));
-		checkAuto.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				env.set(Environment.KEY_AUTO, checkAuto.isSelected());
-			}
-		});
+		checkAuto = createOptionCheckBox(Environment.KEY_AUTO, "auto reduction");
 		buttonPanel.add(checkAuto);
 
-		checkTraceInAuto = new JCheckBox("show trace in auto mode");
-		checkTraceInAuto.setSelected(env.getBoolean(Environment.KEY_TRACE));
-		checkTraceInAuto.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				env.set(Environment.KEY_TRACE, checkTraceInAuto.isSelected());
-			}
-		});
+		checkTraceInAuto = createOptionCheckBox(Environment.KEY_TRACE, "show trace in auto mode");
 		buttonPanel.add(checkTraceInAuto);
 
 		buttonStop = new JButton("stop");
@@ -233,7 +212,7 @@ public class MainFrame extends JFrame
 
 		redexView = new RedexView();
 		redexView.setBackground(Color.WHITE);
-		redexView.setFont(new Font(Font.DIALOG_INPUT, Font.PLAIN, 12));
+		redexView.setFont(env.getGUIFont());
 		redexView.setMargin(5, 5, 5, 5);
 		redexView.addActionListener(new ActionListener()
 		{
@@ -245,6 +224,7 @@ public class MainFrame extends JFrame
 		tabbedPane.add("Redex", new JScrollPane(redexView));
 
 		macroView = new MacroDefinitionView();
+		macroView.setFont(env.getGUIFont());
 		tabbedPane.addTab("Macros", macroView);
 
 		final JSplitPane sp = new JSplitPane();
@@ -259,10 +239,79 @@ public class MainFrame extends JFrame
 				sp.setResizeWeight(0.5);
 			}
 		});
+		sp.setDividerLocation(Short.MAX_VALUE);
 		add(sp);
 		setSize(600, 500);
 
 		initializeCommands();
+
+		int mod = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+		InputMap imap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, mod), "font.size.increase");
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, mod), "font.size.increase");
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SEMICOLON, mod), "font.size.increase");
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, mod), "font.size.decrease");
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, mod), "font.size.decrease");
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_0, mod), "font.size.reset");
+
+		ActionMap amap = getRootPane().getActionMap();
+		amap.put("font.size.increase", new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				Environment env = Environment.getEnvironment();
+				int size = env.getInt(Environment.KEY_GUI_FONT_SIZE, 12);
+				if (size < 120)
+				{
+					env.set(Environment.KEY_GUI_FONT_SIZE, size + 1);
+					setCodeFont(env.getGUIFont());
+				}
+			}
+		});
+		amap.put("font.size.decrease", new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				Environment env = Environment.getEnvironment();
+				int size = env.getInt(Environment.KEY_GUI_FONT_SIZE, 12);
+				if (5 < size)
+				{
+					env.set(Environment.KEY_GUI_FONT_SIZE, size - 1);
+					setCodeFont(env.getGUIFont());
+				}
+			}
+		});
+		amap.put("font.size.reset", new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				Environment env = Environment.getEnvironment();
+				env.set(Environment.KEY_GUI_FONT_SIZE, 12);
+				setCodeFont(env.getGUIFont());
+			}
+		});
+	}
+
+	private JCheckBox createOptionCheckBox(final String key, String text)
+	{
+		final JCheckBox checkBox = new JCheckBox(text);
+		checkBox.setSelected(env.getBoolean(key));
+		checkBox.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				env.set(key, checkBox.isSelected());
+			}
+		});
+		return checkBox;
+	}
+
+	public void setCodeFont(Font font)
+	{
+		inputField.setFont(font);
+		output.setFont(font);
+		redexView.setFont(font);
+		macroView.setFont(font.deriveFont(Font.PLAIN, 12));
 	}
 
 	private void start(String text)

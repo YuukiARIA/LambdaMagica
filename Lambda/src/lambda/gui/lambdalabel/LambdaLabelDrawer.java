@@ -109,7 +109,7 @@ public class LambdaLabelDrawer implements Visitor<Boolean>
 	{
 		g.setColor(wrap.color);
 		int r = fm.getHeight();
-		g.fillRoundRect(point.x + 1, point.y - (fm.getAscent() + fm.getLeading()), wrap.getWidth() - 2, fm.getHeight(), r, r);
+		g.fillRoundRect(point.x + 1, point.y - (fm.getAscent() + fm.getLeading()) + 1, wrap.getWidth() - 2, fm.getHeight() - 2, r, r);
 		g.setColor(Color.BLACK);
 
 		point.x += 2;
@@ -119,7 +119,7 @@ public class LambdaLabelDrawer implements Visitor<Boolean>
 
 	private void drawString(String s)
 	{
-		g.drawString(s, point.x, point.y);
+		g.drawString(s, point.x, point.y - fm.getLeading());
 		point.x += fm.stringWidth(s);
 	}
 }

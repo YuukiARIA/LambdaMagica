@@ -21,7 +21,7 @@ import util.nullable.NullableInt;
 
 public class Main
 {
-	private static final Environment env = Environment.load("properties.txt");
+	private static final Environment env = Environment.getEnvironment();
 	private static final CommandProcessor commands = new CommandProcessor();
 
 	private static char readChar()

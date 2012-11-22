@@ -1,5 +1,6 @@
 package lambda;
 
+import java.awt.Font;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileInputStream;
@@ -19,25 +20,35 @@ public class Environment
 {
 	public static final String APPLICATION_VERSION = "3.50";
 
+	public static final String PROPERTY_FILENAME = "properties.txt";
+
 	public static final String KEY_CONTINUE_STEPS = "continue_steps";
+	public static final String KEY_PRINT_STEP = "print_step";
 	public static final String KEY_TRACE = "trace";
 	public static final String KEY_SHORT = "short";
 	public static final String KEY_DATA_CONV = "data_abstraction";
 	public static final String KEY_AUTO = "auto";
 	public static final String KEY_GUI_FONT_FAMILY = "gui.fontfamily";
 	public static final String KEY_GUI_FONT_SIZE = "gui.fontsize";
+	public static final String KEY_GUI_FONT_ADDITION = "gui.ui.font.addition";
 
-	private String fileName;
+	private static Environment instance;
+
 	private Map<String, Lambda> macros = new TreeMap<String, Lambda>();
 	private Map<String, String> entries = new TreeMap<String, String>();
 
+	private Font guiFont;
+
 	private Environment()
 	{
-		set("continue_steps", 500);
-		set("trace", false);
-		set("short", true);
-		set("data_abstraction", false);
-		set("auto", false);
+		set(KEY_CONTINUE_STEPS, 500);
+		set(KEY_TRACE, false);
+		set(KEY_SHORT, true);
+		set(KEY_DATA_CONV, false);
+		set(KEY_AUTO, false);
+		set(KEY_GUI_FONT_FAMILY, Font.DIALOG_INPUT);
+		set(KEY_GUI_FONT_SIZE, 12);
+		set(KEY_GUI_FONT_ADDITION, 0);
 	}
 
 	public void defineMacro(String name, Lambda lambda)
@@ -120,21 +131,40 @@ public class Environment
 		entries.put(key, value.toString());
 	}
 
-	public static Environment load(String fileName)
+	public Font getGUIFont()
 	{
-		final Environment env = new Environment();
-		env.fileName = fileName;
+		String family = get(KEY_GUI_FONT_FAMILY, Font.DIALOG_INPUT);
+		int size = getInt(KEY_GUI_FONT_SIZE, 12);
+		if (guiFont == null || !guiFont.getFamily().equals(family) || guiFont.getSize() != size)
+		{
+			guiFont = new Font(family, Font.PLAIN, size);
+		}
+		return guiFont;
+	}
+
+	public static Environment getEnvironment()
+	{
+		if (instance == null)
+		{
+			createEnvironment();
+		}
+		return instance;
+	}
+
+	private static void createEnvironment()
+	{
+		instance = new Environment();
 		try
 		{
 			BufferedReader reader = new BufferedReader(
-				new InputStreamReader(new FileInputStream(fileName)));
+				new InputStreamReader(new FileInputStream(PROPERTY_FILENAME)));
 			String line;
 			while ((line = reader.readLine()) != null)
 			{
 				String[] kv = line.split("\\s*=\\s*");
 				if (kv.length == 2)
 				{
-					env.entries.put(kv[0].trim(), kv[1].trim());
+					instance.entries.put(kv[0].trim(), kv[1].trim());
 				}
 			}
 
@@ -150,18 +180,17 @@ public class Environment
 		{
 			public void run()
 			{
-				env.save();
+				instance.save();
 			}
 		});
-		return env;
 	}
 
-	public void save()
+	private void save()
 	{
 		try
 		{
 			PrintWriter out = new PrintWriter(new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream(fileName))));
+				new OutputStreamWriter(new FileOutputStream(PROPERTY_FILENAME))));
 			for (Map.Entry<String, String> e : entries.entrySet())
 			{
 				out.println(e.getKey() + "=" + e.getValue());

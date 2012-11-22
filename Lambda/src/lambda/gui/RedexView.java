@@ -2,6 +2,7 @@ package lambda.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -29,13 +30,13 @@ import util.Pair;
 @SuppressWarnings("serial")
 public class RedexView extends JPanel
 {
-	private static final Color HOVER_BACK_COLOR = new Color(220, 220, 255);
-	private static final Color SELECTION_RECT_COLOR = new Color(40, 40, 255);
+	private static final Color HOVER_BACK_COLOR = new Color(255, 255, 200);
+	private static final Color TRIANGLE_COLOR = new Color(192, 192, 255);
 
 	private LambdaLabelBuilder builder = new LambdaLabelBuilder();
 	private List<Pair<IRedex, LambdaLabel>> labels = new ArrayList<Pair<IRedex, LambdaLabel>>();
 	private Insets margin = new Insets(0, 0, 0, 0);
-	private int height = 20;
+	private int height = -1;
 	private int maxWidth;
 	private int hoverIndex = -1;
 	private int selectedIndex = -1;
@@ -47,9 +48,16 @@ public class RedexView extends JPanel
 		addMouseMotionListener(mh);
 	}
 
+	public void setFont(Font font)
+	{
+		super.setFont(font);
+		height = getFontMetrics(font).getHeight();
+	}
+
 	public void setMargin(int top, int left, int bottom, int right)
 	{
 		margin.set(top, left, bottom, right);
+		calcPreferredSize();
 	}
 
 	public void clearLabels()
@@ -63,9 +71,18 @@ public class RedexView extends JPanel
 	private void addLabel(IRedex r, LambdaLabel l)
 	{
 		labels.add(Pair.of(r, l));
-		maxWidth = Math.max(maxWidth, LambdaLabelMetrics.getWidth(getGraphics(), l));
+		calcPreferredSize();
+	}
 
-		int w = maxWidth + margin.left + margin.right;
+	private void calcPreferredSize()
+	{
+		Graphics g = getGraphics();
+		maxWidth = 0;
+		for (Pair<IRedex, LambdaLabel> p : labels)
+		{
+			maxWidth = Math.max(maxWidth, LambdaLabelMetrics.getWidth(g, p._2));
+		}
+		int w = maxWidth + height / 2 + margin.left + margin.right;
 		int h = height * labels.size() + margin.top + margin.bottom;
 		setPreferredSize(new Dimension(w, h));
 	}
@@ -152,27 +169,37 @@ public class RedexView extends JPanel
 		if (hoverIndex != -1)
 		{
 			g.setColor(HOVER_BACK_COLOR);
-			g.fillRect(0, hoverIndex * height, width, height);
+			g.fillRect(height / 2, hoverIndex * height, width - height / 2, height);
 		}
 
 		Graphics2D g2 = (Graphics2D)g;
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
+		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
+		g.translate(height / 2, 0);
 		LambdaLabelDrawer drawer = new LambdaLabelDrawer();
 		for (int i = 0; i < labels.size(); i++)
 		{
 			Pair<IRedex, LambdaLabel> p = labels.get(i);
 			drawer.draw(g, p._2, 0, i * height, height);
 		}
+		g.translate(-height / 2, 0);
 
 		if (selectedIndex != -1)
 		{
-			g.setColor(SELECTION_RECT_COLOR);
-			g.drawRect(0, selectedIndex * height, width, height);
+			g.setColor(TRIANGLE_COLOR);
+			drawTriangle(g, 0, selectedIndex * height + height / 2);
 		}
 
 		g.translate(-margin.left, -margin.top);
+	}
+
+	private void drawTriangle(Graphics g, int x, int y)
+	{
+		int s = Math.max(height / 3, 1);
+		g.translate(x, y);
+		g.fillPolygon(new int[] {  0, s, 0 }, new int[] { -s, 0, s }, 3);
+		g.translate(-x, -y);
 	}
 
 	private class MouseHandler extends MouseAdapter
