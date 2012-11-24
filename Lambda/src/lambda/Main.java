@@ -10,8 +10,6 @@ import java.util.Scanner;
 
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
-import lambda.ast.parser.Lexer;
-import lambda.ast.parser.Parser;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
 import lambda.system.CommandDelegate;
@@ -41,10 +39,9 @@ public class Main
 
 	private static Lambda parse(String text)
 	{
-		Parser parser = new Parser(new Lexer(text));
 		try
 		{
-			return parser.parse();
+			return Lambda.parse(text);
 		}
 		catch (ParserException e)
 		{
@@ -250,12 +247,11 @@ public class Main
 					for (String s : params)
 					{
 						expr = expr + s + " ";
-						}
-					Parser parser = new Parser(new Lexer(expr));
+					}
 					MacroExpander expander = new MacroExpander(env);
 					try
 					{
-						System.out.println(expander.expand(parser.parse()));
+						System.out.println(expander.expand(Lambda.parse(expr)));
 					}
 					catch (ParserException e)
 					{

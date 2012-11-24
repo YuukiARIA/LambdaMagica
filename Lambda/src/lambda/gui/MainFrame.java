@@ -38,8 +38,6 @@ import lambda.LambdaInterpreter;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
-import lambda.ast.parser.Lexer;
-import lambda.ast.parser.Parser;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
 import lambda.gui.macroview.MacroDefinitionView;
@@ -459,7 +457,7 @@ public class MainFrame extends JFrame
 	{
 		try
 		{
-			Lambda lambda = parseExpression(expr);
+			Lambda lambda = Lambda.parse(expr);
 			env.defineMacro(name, lambda);
 			macroView.addMacro(name, lambda);
 			String s = String.format("- <%s> is defined as %s", name, lambda);
@@ -495,7 +493,7 @@ public class MainFrame extends JFrame
 		}
 		else
 		{
-			Lambda lambda = parseExpression(line);
+			Lambda lambda = Lambda.parse(line);
 
 			println(lambda.toString());
 
@@ -670,7 +668,7 @@ public class MainFrame extends JFrame
 					}
 					try
 					{
-						Lambda lambda = parseExpression(expr);
+						Lambda lambda = Lambda.parse(expr);
 						MacroExpander expander = new MacroExpander(env);
 						println(expander.expand(lambda).toString());
 					}
@@ -722,11 +720,5 @@ public class MainFrame extends JFrame
 				output.setCaretPosition(output.getText().length());
 			}
 		});
-	}
-
-	private static Lambda parseExpression(String s) throws ParserException
-	{
-		Parser parser = new Parser(new Lexer(s));
-		return parser.parse();
 	}
 }
