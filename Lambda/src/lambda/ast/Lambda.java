@@ -41,11 +41,6 @@ public abstract class Lambda
 		return Pair.of(Boolean.valueOf(false), this);
 	}
 
-	protected Lambda apply(IDContext context, Lambda e)
-	{
-		return this;
-	}
-
 	protected abstract Lambda substitute(IDContext context, String name, Lambda lambda);
 
 	public abstract void accept(Visitor visitor);

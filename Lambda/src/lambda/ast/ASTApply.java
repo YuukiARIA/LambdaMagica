@@ -23,7 +23,8 @@ public class ASTApply extends Lambda implements IRedex
 	{
 		if (lexpr.isAbstraction())
 		{
-			return Pair.of(true, lexpr.apply(context, rexpr));
+			ASTAbstract abs = (ASTAbstract)lexpr;
+			return Pair.of(true, abs.apply(context, rexpr));
 		}
 
 		Pair<Boolean, Lambda> ret = lexpr.betaReduction(context, env);
@@ -45,7 +46,8 @@ public class ASTApply extends Lambda implements IRedex
 	{
 		if (this == redex && lexpr.isAbstraction())
 		{
-			return Pair.of(true, lexpr.apply(context, rexpr));
+			ASTAbstract abs = (ASTAbstract)lexpr;
+			return Pair.of(true, abs.apply(context, rexpr));
 		}
 
 		Pair<Boolean, Lambda> ret = lexpr.betaReduction(context, env, redex);

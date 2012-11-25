@@ -66,7 +66,7 @@ public class ASTAbstract extends Lambda implements IRedex
 		return Pair.of(false, (Lambda)this);
 	}
 
-	protected Lambda apply(IDContext context, Lambda lambda)
+	public Lambda apply(IDContext context, Lambda lambda)
 	{
 		IDContext nc = IDContext.deriveContext(context);
 		nc.addBoundedName(name);
