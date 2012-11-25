@@ -24,11 +24,6 @@ public class ASTLiteral extends Lambda
 		return true;
 	}
 
-	public int getPrec()
-	{
-		return 0;
-	}
-
 	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env)
 	{
 		return Pair.of(false, (Lambda)this);

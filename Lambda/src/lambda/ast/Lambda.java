@@ -33,8 +33,6 @@ public abstract class Lambda
 		return isMacro() || isLiteral();
 	}
 
-	public abstract int getPrec();
-
 	public abstract Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env);
 	public abstract Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env, IRedex redex);
 

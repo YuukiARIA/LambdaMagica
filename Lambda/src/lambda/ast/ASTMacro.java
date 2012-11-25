@@ -17,11 +17,6 @@ public class ASTMacro extends Lambda implements IRedex
 		return true;
 	}
 
-	public int getPrec()
-	{
-		return 0;
-	}
-
 	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env)
 	{
 		MacroExpander expander = new MacroExpander(env);

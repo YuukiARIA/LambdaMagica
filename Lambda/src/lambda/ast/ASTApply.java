@@ -19,11 +19,6 @@ public class ASTApply extends Lambda implements IRedex
 		return true;
 	}
 
-	public int getPrec()
-	{
-		return 1;
-	}
-
 	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env)
 	{
 		if (lexpr.isAbstraction())

@@ -23,11 +23,6 @@ public class ASTAbstract extends Lambda
 		return true;
 	}
 
-	public int getPrec()
-	{
-		return 3;
-	}
-
 	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env)
 	{
 		IDContext nc = IDContext.deriveContext(context);
