@@ -96,6 +96,12 @@ public class MainMenu extends JMenuBar
 		menuAbout.add(itemVersion);
 	}
 
+	public void updateUI()
+	{
+		super.updateUI();
+		setBorder(null);
+	}
+
 	private void showVersion()
 	{
 		String s = "";
