@@ -108,11 +108,6 @@ public class ASTAbstract extends Lambda
 		return (ASTAbstract)renamer.rename(bv, this);
 	}
 
-	public <T, U> T accept(Lambda.VisitorRP<T, U> visitor, U param)
-	{
-		return visitor.visit(this, param);
-	}
-
 	public void accept(Lambda.Visitor visitor)
 	{
 		visitor.visit(this);
@@ -121,5 +116,15 @@ public class ASTAbstract extends Lambda
 	public <TParam> void accept(Lambda.VisitorP<TParam> visitor, TParam param)
 	{
 		visitor.visit(this, param);
+	}
+
+	public <TRet> TRet accept(Lambda.VisitorR<TRet> visitor)
+	{
+		return visitor.visit(this);
+	}
+
+	public <TRet, TParam> TRet accept(Lambda.VisitorRP<TRet, TParam> visitor, TParam param)
+	{
+		return visitor.visit(this, param);
 	}
 }

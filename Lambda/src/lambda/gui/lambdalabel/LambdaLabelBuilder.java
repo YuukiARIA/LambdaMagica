@@ -25,7 +25,7 @@ public class LambdaLabelBuilder
 		return lambda.accept(visitor);
 	}
 
-	private class ConvertVisitor extends Lambda.VisitorR<LambdaLabel>
+	private class ConvertVisitor implements Lambda.VisitorR<LambdaLabel>
 	{
 		public LambdaLabel visit(ASTAbstract abs)
 		{

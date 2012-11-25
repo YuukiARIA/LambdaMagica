@@ -2,7 +2,7 @@ package lambda.ast;
 
 import lambda.Environment;
 
-public class MacroExpander extends Lambda.VisitorR<Lambda>
+public class MacroExpander implements Lambda.VisitorR<Lambda>
 {
 	private Environment env;
 	private boolean recursive;

@@ -1,6 +1,6 @@
 package lambda.ast;
 
-public class LambdaPrinter extends Lambda.VisitorR<Lambda>
+public class LambdaPrinter implements Lambda.VisitorR<Lambda>
 {
 	private static final char LAMBDA_CHAR = '\\';
 	private StringBuilder buf = new StringBuilder();

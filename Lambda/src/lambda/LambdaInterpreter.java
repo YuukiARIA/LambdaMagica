@@ -138,7 +138,7 @@ public class LambdaInterpreter
 		return false;
 	}
 
-	private static class NormalFormChecker extends VisitorR<Boolean>
+	private static class NormalFormChecker implements VisitorR<Boolean>
 	{
 		private static NormalFormChecker visitor;
 

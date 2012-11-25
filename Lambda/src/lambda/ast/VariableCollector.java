@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import lambda.ast.Lambda.VisitorR;
 import util.Unit;
 
 public class VariableCollector
@@ -27,7 +26,7 @@ public class VariableCollector
 		return Collections.unmodifiableSet(collector.bv);
 	}
 
-	private static class Collector extends VisitorR<Unit>
+	private static class Collector implements Lambda.VisitorR<Unit>
 	{
 		private Set<String> fv = new HashSet<String>();
 		private Set<String> bv = new HashSet<String>();
