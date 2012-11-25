@@ -4,8 +4,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import util.Unit;
-
 public class VariableCollector
 {
 	private Collector collector;
@@ -26,35 +24,31 @@ public class VariableCollector
 		return Collections.unmodifiableSet(collector.bv);
 	}
 
-	private static class Collector implements Lambda.VisitorR<Unit>
+	private static class Collector implements Lambda.Visitor
 	{
 		private Set<String> fv = new HashSet<String>();
 		private Set<String> bv = new HashSet<String>();
 
-		public Unit visit(ASTAbstract abs)
+		public void visit(ASTAbstract abs)
 		{
 			bv.add(abs.name);
 			abs.e.accept(this);
 			fv.remove(abs.name);
-			return Unit.VALUE;
 		}
 
-		public Unit visit(ASTApply app)
+		public void visit(ASTApply app)
 		{
 			app.lexpr.accept(this);
 			app.rexpr.accept(this);
-			return Unit.VALUE;
 		}
 
-		public Unit visit(ASTLiteral literal)
+		public void visit(ASTLiteral literal)
 		{
 			fv.add(literal.name);
-			return Unit.VALUE;
 		}
 
-		public Unit visit(ASTMacro macro)
+		public void visit(ASTMacro macro)
 		{
-			return Unit.VALUE;
 		}
 	}
 }
