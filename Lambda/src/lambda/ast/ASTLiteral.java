@@ -44,8 +44,18 @@ public class ASTLiteral extends Lambda
 		return name.equals(this.name) ? lambda : this;
 	}
 
-	public <T, U> T accept(Lambda.Visitor<T, U> visitor, U param)
+	public <T, U> T accept(Lambda.VisitorRP<T, U> visitor, U param)
 	{
-		return visitor.visitLiteral(this, param);
+		return visitor.visit(this, param);
+	}
+
+	public void accept(Lambda.Visitor visitor)
+	{
+		visitor.visit(this);
+	}
+
+	public <TParam> void accept(Lambda.VisitorP<TParam> visitor, TParam param)
+	{
+		visitor.visit(this, param);
 	}
 }

@@ -9,7 +9,7 @@ import lambda.ast.ASTMacro;
 import lambda.ast.IDContext;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
-import lambda.ast.Lambda.SingleVisitor;
+import lambda.ast.Lambda.VisitorR;
 import lambda.ast.VariableCollector;
 import util.Pair;
 
@@ -138,7 +138,7 @@ public class LambdaInterpreter
 		return false;
 	}
 
-	private static class NormalFormChecker extends SingleVisitor<Boolean>
+	private static class NormalFormChecker extends VisitorR<Boolean>
 	{
 		private static NormalFormChecker visitor;
 
@@ -156,22 +156,22 @@ public class LambdaInterpreter
 			return lambda.accept(this);
 		}
 
-		public Boolean visitAbstract(ASTAbstract abs)
+		public Boolean visit(ASTAbstract abs)
 		{
 			return visit(abs.e);
 		}
 
-		public Boolean visitApply(ASTApply app)
+		public Boolean visit(ASTApply app)
 		{
 			return !app.lexpr.isAbstraction() && visit(app.lexpr) && visit(app.rexpr);
 		}
 
-		public Boolean visitLiteral(ASTLiteral literal)
+		public Boolean visit(ASTLiteral literal)
 		{
 			return true;
 		}
 
-		public Boolean visitMacro(ASTMacro macro)
+		public Boolean visit(ASTMacro macro)
 		{
 			return false;
 		}

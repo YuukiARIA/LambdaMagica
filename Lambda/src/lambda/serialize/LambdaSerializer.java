@@ -41,7 +41,7 @@ public class LambdaSerializer
 		return a;
 	}
 
-	private static class SerializeVisitor implements Lambda.Visitor<Object, List<Short>>
+	private static class SerializeVisitor implements Lambda.VisitorRP<Object, List<Short>>
 	{
 		private static class Context
 		{
@@ -90,7 +90,7 @@ public class LambdaSerializer
 			fvId = 1;
 		}
 
-		public Object visitAbstract(ASTAbstract abs, List<Short> data)
+		public Object visit(ASTAbstract abs, List<Short> data)
 		{
 			cl.pushVariable(abs.name);
 			data.add(LAMBDA_BEGIN);
@@ -100,20 +100,20 @@ public class LambdaSerializer
 			return null;
 		}
 
-		public Object visitApply(ASTApply app, List<Short> data)
+		public Object visit(ASTApply app, List<Short> data)
 		{
 			app.lexpr.accept(this, data);
 			app.rexpr.accept(this, data);
 			return null;
 		}
 
-		public Object visitLiteral(ASTLiteral l, List<Short> data)
+		public Object visit(ASTLiteral l, List<Short> data)
 		{
 			data.add(getId(cl, l.name));
 			return null;
 		}
 
-		public Object visitMacro(ASTMacro m, List<Short> data)
+		public Object visit(ASTMacro m, List<Short> data)
 		{
 			data.add(getFreeVariableId(m.name));
 			return null;

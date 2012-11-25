@@ -1,6 +1,6 @@
 package lambda.ast;
 
-import lambda.ast.Lambda.Visitor;
+import lambda.ast.Lambda.VisitorRP;
 import util.Pair;
 
 public class Substituter
@@ -18,7 +18,7 @@ public class Substituter
 		return visitor.visit(lambda, Pair.of(name, e));
 	}
 
-	private class VisitorImpl implements Visitor<Lambda, Pair<String, Lambda>>
+	private class VisitorImpl implements VisitorRP<Lambda, Pair<String, Lambda>>
 	{
 		private VisitorImpl()
 		{
@@ -29,7 +29,7 @@ public class Substituter
 			return l.accept(this, param);
 		}
 
-		public Lambda visitAbstract(ASTAbstract abs, Pair<String, Lambda> param)
+		public Lambda visit(ASTAbstract abs, Pair<String, Lambda> param)
 		{
 			String v = "$" + Substituter.this.varid++;
 			ASTLiteral fresh = new ASTLiteral(abs.originalName, v);
@@ -38,20 +38,20 @@ public class Substituter
 			return new ASTAbstract(abs.originalName, v, e);
 		}
 
-		public Lambda visitApply(ASTApply app, Pair<String, Lambda> param)
+		public Lambda visit(ASTApply app, Pair<String, Lambda> param)
 		{
 			Lambda l = visit(app.lexpr, param);
 			Lambda r = visit(app.rexpr, param);
 			return l == app.lexpr && r == app.rexpr ? app : new ASTApply(l, r);
 		}
 
-		public Lambda visitLiteral(ASTLiteral literal, Pair<String, Lambda> param)
+		public Lambda visit(ASTLiteral literal, Pair<String, Lambda> param)
 		{
 			String name = param._1;
 			return name.equals(literal.name) ? param._2 : literal;
 		}
 
-		public Lambda visitMacro(ASTMacro macro, Pair<String, Lambda> param)
+		public Lambda visit(ASTMacro macro, Pair<String, Lambda> param)
 		{
 			return macro;
 		}

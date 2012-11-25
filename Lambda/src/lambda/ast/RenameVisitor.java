@@ -5,9 +5,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import lambda.ast.Lambda.Visitor;
+import lambda.ast.Lambda.VisitorRP;
 
-public class RenameVisitor implements Visitor<Lambda, Map<String, String>>
+public class RenameVisitor implements VisitorRP<Lambda, Map<String, String>>
 {
 	private Lambda lambda;
 	private Set<String> bounded = new HashSet<String>();
@@ -22,7 +22,7 @@ public class RenameVisitor implements Visitor<Lambda, Map<String, String>>
 		return lambda.accept(this, new HashMap<String, String>());
 	}
 
-	public Lambda visitAbstract(ASTAbstract abs, Map<String, String> renameMap)
+	public Lambda visit(ASTAbstract abs, Map<String, String> renameMap)
 	{
 		Map<String, String> map = new HashMap<String, String>(renameMap);
 		ASTAbstract abs2;
@@ -41,14 +41,14 @@ public class RenameVisitor implements Visitor<Lambda, Map<String, String>>
 		return e == abs2.e ? abs2 : new ASTAbstract(abs2.originalName, abs2.name, e);
 	}
 
-	public Lambda visitApply(ASTApply app, Map<String, String> renameMap)
+	public Lambda visit(ASTApply app, Map<String, String> renameMap)
 	{
 		Lambda l = app.lexpr.accept(this, renameMap);
 		Lambda r = app.rexpr.accept(this, renameMap);
 		return l == app.lexpr && r == app.rexpr ? app : new ASTApply(l, r);
 	}
 
-	public Lambda visitLiteral(ASTLiteral literal, Map<String, String> renameMap)
+	public Lambda visit(ASTLiteral literal, Map<String, String> renameMap)
 	{
 		if (renameMap.containsKey(literal.name))
 		{
@@ -57,7 +57,7 @@ public class RenameVisitor implements Visitor<Lambda, Map<String, String>>
 		return literal;
 	}
 
-	public Lambda visitMacro(ASTMacro macro, Map<String, String> renameMap)
+	public Lambda visit(ASTMacro macro, Map<String, String> renameMap)
 	{
 		return macro;
 	}

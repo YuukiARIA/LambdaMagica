@@ -25,14 +25,14 @@ public class LambdaLabelBuilder
 		return lambda.accept(visitor);
 	}
 
-	private class ConvertVisitor extends Lambda.SingleVisitor<LambdaLabel>
+	private class ConvertVisitor extends Lambda.VisitorR<LambdaLabel>
 	{
-		public LambdaLabel visitAbstract(ASTAbstract abs)
+		public LambdaLabel visit(ASTAbstract abs)
 		{
 			return LambdaLabel.abs(abs.name, abs.e.accept(this));
 		}
 
-		public LambdaLabel visitApply(ASTApply app)
+		public LambdaLabel visit(ASTApply app)
 		{
 			LambdaLabel left = app.lexpr.accept(this), right = app.rexpr.accept(this);
 			if (app == redex)
@@ -43,12 +43,12 @@ public class LambdaLabelBuilder
 			return LambdaLabel.apply(left, right);
 		}
 
-		public LambdaLabel visitLiteral(ASTLiteral l)
+		public LambdaLabel visit(ASTLiteral l)
 		{
 			return LambdaLabel.literal(l.name);
 		}
 
-		public LambdaLabel visitMacro(ASTMacro m)
+		public LambdaLabel visit(ASTMacro m)
 		{
 			LambdaLabel label = LambdaLabel.macro(m.name);
 			if (m == redex)

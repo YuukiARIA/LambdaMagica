@@ -46,8 +46,18 @@ public class ASTMacro extends Lambda implements IRedex
 		return this;
 	}
 
-	public <T, U> T accept(Lambda.Visitor<T, U> visitor, U param)
+	public <T, U> T accept(Lambda.VisitorRP<T, U> visitor, U param)
 	{
-		return visitor.visitMacro(this, param);
+		return visitor.visit(this, param);
+	}
+
+	public void accept(Lambda.Visitor visitor)
+	{
+		visitor.visit(this);
+	}
+
+	public <TParam> void accept(Lambda.VisitorP<TParam> visitor, TParam param)
+	{
+		visitor.visit(this, param);
 	}
 }

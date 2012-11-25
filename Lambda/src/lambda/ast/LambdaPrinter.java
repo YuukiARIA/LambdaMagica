@@ -1,6 +1,6 @@
 package lambda.ast;
 
-public class LambdaPrinter extends Lambda.SingleVisitor<Lambda>
+public class LambdaPrinter extends Lambda.VisitorR<Lambda>
 {
 	private static final char LAMBDA_CHAR = '\\';
 	private StringBuilder buf = new StringBuilder();
@@ -18,7 +18,7 @@ public class LambdaPrinter extends Lambda.SingleVisitor<Lambda>
 		return buf.toString();
 	}
 
-	public Lambda visitAbstract(ASTAbstract abs)
+	public Lambda visit(ASTAbstract abs)
 	{
 		Lambda e = abs;
 		buf.append(LAMBDA_CHAR);
@@ -33,7 +33,7 @@ public class LambdaPrinter extends Lambda.SingleVisitor<Lambda>
 		return abs;
 	}
 
-	public Lambda visitApply(ASTApply app)
+	public Lambda visit(ASTApply app)
 	{
 		Lambda l = app.lexpr;
 		Lambda r = app.rexpr;
@@ -51,13 +51,13 @@ public class LambdaPrinter extends Lambda.SingleVisitor<Lambda>
 		return app;
 	}
 
-	public Lambda visitLiteral(ASTLiteral literal)
+	public Lambda visit(ASTLiteral literal)
 	{
 		buf.append(literal.name);
 		return literal;
 	}
 
-	public Lambda visitMacro(ASTMacro macro)
+	public Lambda visit(ASTMacro macro)
 	{
 		buf.append('<');
 		buf.append(macro.name);

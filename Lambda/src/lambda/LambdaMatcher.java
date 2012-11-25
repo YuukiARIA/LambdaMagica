@@ -5,7 +5,7 @@ import lambda.ast.ASTApply;
 import lambda.ast.ASTLiteral;
 import lambda.ast.ASTMacro;
 import lambda.ast.Lambda;
-import lambda.ast.Lambda.Visitor;
+import lambda.ast.Lambda.VisitorRP;
 
 public class LambdaMatcher
 {
@@ -20,9 +20,9 @@ public class LambdaMatcher
 		return e1.accept(visitor, e2);
 	}
 
-	private static class MatchingVisitor implements Visitor<Boolean, Lambda>
+	private static class MatchingVisitor implements VisitorRP<Boolean, Lambda>
 	{
-		public Boolean visitAbstract(ASTAbstract abs, Lambda param)
+		public Boolean visit(ASTAbstract abs, Lambda param)
 		{
 			if (param.getClass() == ASTAbstract.class)
 			{
@@ -32,7 +32,7 @@ public class LambdaMatcher
 			return false;
 		}
 
-		public Boolean visitApply(ASTApply app, Lambda param)
+		public Boolean visit(ASTApply app, Lambda param)
 		{
 			if (param.getClass() == ASTApply.class)
 			{
@@ -42,12 +42,12 @@ public class LambdaMatcher
 			return false;
 		}
 
-		public Boolean visitLiteral(ASTLiteral literal, Lambda param)
+		public Boolean visit(ASTLiteral literal, Lambda param)
 		{
 			return param.getClass() == ASTLiteral.class;
 		}
 
-		public Boolean visitMacro(ASTMacro macro, Lambda param)
+		public Boolean visit(ASTMacro macro, Lambda param)
 		{
 			if (param.getClass() == ASTMacro.class)
 			{

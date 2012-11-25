@@ -23,7 +23,7 @@ public class AlphaComparator
 		return lambda1.accept(visitor, lambda2);
 	}
 
-	private static class AlphaVisitor implements Lambda.Visitor<Boolean, Lambda>
+	private static class AlphaVisitor implements Lambda.VisitorRP<Boolean, Lambda>
 	{
 		private static class Context
 		{
@@ -71,7 +71,7 @@ public class AlphaComparator
 			fvId = 1;
 		}
 
-		public Boolean visitAbstract(ASTAbstract abs, Lambda lambda)
+		public Boolean visit(ASTAbstract abs, Lambda lambda)
 		{
 			if (lambda instanceof ASTAbstract)
 			{
@@ -84,7 +84,7 @@ public class AlphaComparator
 			return false;
 		}
 
-		public Boolean visitApply(ASTApply app1, Lambda lambda)
+		public Boolean visit(ASTApply app1, Lambda lambda)
 		{
 			if (lambda instanceof ASTApply)
 			{
@@ -94,7 +94,7 @@ public class AlphaComparator
 			return false;
 		}
 
-		public Boolean visitLiteral(ASTLiteral l1, Lambda lambda)
+		public Boolean visit(ASTLiteral l1, Lambda lambda)
 		{
 			if (lambda instanceof ASTLiteral)
 			{
@@ -104,7 +104,7 @@ public class AlphaComparator
 			return false;
 		}
 
-		public Boolean visitMacro(ASTMacro m1, Lambda lambda)
+		public Boolean visit(ASTMacro m1, Lambda lambda)
 		{
 			if (lambda instanceof ASTMacro)
 			{

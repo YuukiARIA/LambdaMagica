@@ -5,10 +5,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import lambda.ast.Lambda.Visitor;
+import lambda.ast.Lambda.VisitorRP;
 import util.Pair;
 
-class RenameGenerator implements Visitor<Lambda, Pair<Set<String>, Map<String, String>>>
+class RenameGenerator implements VisitorRP<Lambda, Pair<Set<String>, Map<String, String>>>
 {
 	private Set<String> renameTarget;
 
@@ -22,7 +22,7 @@ class RenameGenerator implements Visitor<Lambda, Pair<Set<String>, Map<String, S
 		return lambda.accept(this, new Pair<Set<String>, Map<String, String>>(new HashSet<String>(boundedNames), new HashMap<String, String>()));
 	}
 
-	public Lambda visitAbstract(ASTAbstract abs, Pair<Set<String>, Map<String, String>> cxt)
+	public Lambda visit(ASTAbstract abs, Pair<Set<String>, Map<String, String>> cxt)
 	{
 		Set<String> bv = cxt._1;
 		Map<String, String> renameMap = cxt._2;
@@ -41,14 +41,14 @@ class RenameGenerator implements Visitor<Lambda, Pair<Set<String>, Map<String, S
 		return e == abs.e ? abs : new ASTAbstract(abs.originalName, abs.name, e);
 	}
 
-	public Lambda visitApply(ASTApply app, Pair<Set<String>, Map<String, String>> cxt)
+	public Lambda visit(ASTApply app, Pair<Set<String>, Map<String, String>> cxt)
 	{
 		Lambda l = app.lexpr.accept(this, cxt);
 		Lambda r = app.rexpr.accept(this, cxt);
 		return l == app.lexpr && r == app.rexpr ? app : new ASTApply(l, r);
 	}
 
-	public Lambda visitLiteral(ASTLiteral literal, Pair<Set<String>, Map<String, String>> cxt)
+	public Lambda visit(ASTLiteral literal, Pair<Set<String>, Map<String, String>> cxt)
 	{
 		if (cxt._2.containsKey(literal.name))
 		{
@@ -57,7 +57,7 @@ class RenameGenerator implements Visitor<Lambda, Pair<Set<String>, Map<String, S
 		return literal;
 	}
 
-	public Lambda visitMacro(ASTMacro macro, Pair<Set<String>, Map<String, String>> cxt)
+	public Lambda visit(ASTMacro macro, Pair<Set<String>, Map<String, String>> cxt)
 	{
 		return macro;
 	}

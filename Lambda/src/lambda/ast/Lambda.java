@@ -51,9 +51,11 @@ public abstract class Lambda
 
 	protected abstract Lambda substitute(IDContext context, String name, Lambda lambda);
 
-	public abstract <T, U> T accept(Visitor<T, U> visitor, U param);
+	public abstract void accept(Visitor visitor);
+	public abstract <TParam> void accept(VisitorP<TParam> visitor, TParam param);
+	public abstract <T, U> T accept(VisitorRP<T, U> visitor, U param);
 
-	public <T> T accept(SingleVisitor<T> visitor)
+	public <T> T accept(VisitorR<T> visitor)
 	{
 		return accept(visitor, Unit.VALUE);
 	}
@@ -69,24 +71,40 @@ public abstract class Lambda
 		return parser.parse();
 	}
 
-	public static abstract class SingleVisitor<T> implements Visitor<T, Unit>
+	public static abstract class VisitorR<T> implements VisitorRP<T, Unit>
 	{
-		public final T visitAbstract(ASTAbstract abs, Unit param) { return visitAbstract(abs); }
-		public final T visitApply(ASTApply app, Unit param) { return visitApply(app); }
-		public final T visitLiteral(ASTLiteral literal, Unit param) { return visitLiteral(literal); }
-		public final T visitMacro(ASTMacro macro, Unit param) { return visitMacro(macro); }
+		public final T visit(ASTAbstract abs, Unit param) { return visit(abs); }
+		public final T visit(ASTApply app, Unit param) { return visit(app); }
+		public final T visit(ASTLiteral literal, Unit param) { return visit(literal); }
+		public final T visit(ASTMacro macro, Unit param) { return visit(macro); }
 
-		public abstract T visitAbstract(ASTAbstract abs);
-		public abstract T visitApply(ASTApply app);
-		public abstract T visitLiteral(ASTLiteral l);
-		public abstract T visitMacro(ASTMacro m);
+		public abstract T visit(ASTAbstract abs);
+		public abstract T visit(ASTApply app);
+		public abstract T visit(ASTLiteral l);
+		public abstract T visit(ASTMacro m);
 	}
 
-	public static abstract interface Visitor<T, U>
+	public static interface VisitorRP<T, U>
 	{
-		public abstract T visitAbstract(ASTAbstract abs, U param);
-		public abstract T visitApply(ASTApply app, U param);
-		public abstract T visitLiteral(ASTLiteral l, U param);
-		public abstract T visitMacro(ASTMacro m, U param);
+		public T visit(ASTAbstract abs, U param);
+		public T visit(ASTApply app, U param);
+		public T visit(ASTLiteral l, U param);
+		public T visit(ASTMacro m, U param);
+	}
+
+	public static interface Visitor
+	{
+		public void visit(ASTAbstract abs);
+		public void visit(ASTApply app);
+		public void visit(ASTLiteral l);
+		public void visit(ASTMacro m);
+	}
+
+	public static interface VisitorP<TParam>
+	{
+		public void visit(ASTAbstract abs, TParam param);
+		public void visit(ASTApply app, TParam param);
+		public void visit(ASTLiteral l, TParam param);
+		public void visit(ASTMacro m, TParam param);
 	}
 }
