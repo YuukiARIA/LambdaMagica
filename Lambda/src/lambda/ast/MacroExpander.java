@@ -5,6 +5,7 @@ import lambda.Environment;
 public class MacroExpander extends Lambda.SingleVisitor<Lambda>
 {
 	private Environment env;
+	private boolean recursive;
 
 	public MacroExpander(Environment env)
 	{
@@ -13,6 +14,12 @@ public class MacroExpander extends Lambda.SingleVisitor<Lambda>
 
 	public Lambda expand(Lambda lambda)
 	{
+		return expand(lambda, false);
+	}
+
+	public Lambda expand(Lambda lambda, boolean recursive)
+	{
+		this.recursive = recursive;
 		return lambda.accept(this);
 	}
 
@@ -39,7 +46,7 @@ public class MacroExpander extends Lambda.SingleVisitor<Lambda>
 		Lambda l = env.expandMacro(macro.name);
 		if (l != null)
 		{
-			return l;
+			return recursive ? l.accept(this) : l;
 		}
 		System.out.println("- <" + macro.name + "> is undefined");
 		return macro;
