@@ -251,7 +251,7 @@ public class Main
 					MacroExpander expander = new MacroExpander(env);
 					try
 					{
-						System.out.println(expander.expand(Lambda.parse(expr)));
+						System.out.println(expander.expand(Lambda.parse(expr), true));
 					}
 					catch (ParserException e)
 					{

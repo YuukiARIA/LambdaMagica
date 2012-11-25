@@ -670,7 +670,7 @@ public class MainFrame extends JFrame
 					{
 						Lambda lambda = Lambda.parse(expr);
 						MacroExpander expander = new MacroExpander(env);
-						println(expander.expand(lambda).toString());
+						println(expander.expand(lambda, true).toString());
 					}
 					catch (ParserException e)
 					{
