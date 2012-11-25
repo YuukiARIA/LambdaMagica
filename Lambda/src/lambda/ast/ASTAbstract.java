@@ -5,7 +5,7 @@ import java.util.Set;
 import lambda.Environment;
 import util.Pair;
 
-public class ASTAbstract extends Lambda
+public class ASTAbstract extends Lambda implements IRedex
 {
 	public final String originalName;
 	public final String name;

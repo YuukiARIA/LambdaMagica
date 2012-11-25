@@ -29,7 +29,12 @@ public class LambdaLabelBuilder
 	{
 		public LambdaLabel visit(ASTAbstract abs)
 		{
-			return LambdaLabel.abs(abs.name, abs.e.accept(this));
+			LambdaLabel label = LambdaLabel.abs(abs.name, abs.e.accept(this));
+			if (abs == redex)
+			{
+				label = LambdaLabel.wrap(label, new Color(255, 240, 100, 200));
+			}
+			return label;
 		}
 
 		public LambdaLabel visit(ASTApply app)

@@ -182,8 +182,8 @@ public abstract class LambdaLabel
 			this.color = color;
 		}
 
-		public boolean isAbstract() { return lambda.isAbstract(); }
-		public boolean isAtomic() { return lambda.isAtomic(); }
+		public boolean isAbstract() { return false; }
+		public boolean isAtomic() { return false; }
 
 		public <T> void accept(Visitor<T> visitor, T param) { visitor.visit(this, param); }
 		public <T> T accept(VisitorR<T> visitor) { return visitor.visit(this); }
