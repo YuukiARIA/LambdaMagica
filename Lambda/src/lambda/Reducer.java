@@ -17,6 +17,11 @@ public class Reducer
 
 	public static Result reduce(Lambda lambda, Environment env, IRedex redex)
 	{
+		if (lambda == null || env == null || redex == null)
+		{
+			throw new NullPointerException();
+		}
+
 		if (visitor == null)
 		{
 			visitor = new ReductionVisitor();
@@ -118,7 +123,7 @@ public class Reducer
 
 		private boolean isRedex(IRedex r)
 		{
-			return redex == null || redex == r;
+			return redex == r;
 		}
 	}
 }

@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Scanner;
 
+import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
+import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
 import lambda.system.CommandDelegate;
@@ -107,11 +109,19 @@ public class Main
 			LambdaInterpreter interpreter = new LambdaInterpreter(lambda);
 
 			int continueSteps = env.getInt(Environment.KEY_CONTINUE_STEPS, 500);
-			int step = 1;
 			boolean interrupted = false;
 
-			while (interpreter.step(env))
+			while (true)
 			{
+				IRedex redex = RedexFinder.getLeftMostOuterMostRedex(interpreter.getLambda(), env.getBoolean(Environment.KEY_ETA_REDUCTION));
+				if (redex == null)
+				{
+					break;
+				}
+				if (!interpreter.step(env, redex))
+				{
+					break;
+				}
 				if (env.getBoolean(Environment.KEY_TRACE))
 				{
 					String s = interpreter.getLambda().toString();
@@ -119,16 +129,16 @@ public class Main
 					{
 						s = s.substring(0, 35) + " ... " + s.substring(s.length() - 35, s.length());
 					}
-					System.out.printf("%3d: ", step);
+					System.out.printf("%3d: ", interpreter.getStep());
 					System.out.println("--> " + s);
 				}
 
-				if (continueSteps > 0 && step % continueSteps == 0)
+				if (continueSteps > 0 && interpreter.getStep() % continueSteps == 0)
 				{
 					char c;
 					do
 					{
-						System.out.printf("- (%d steps done) continue?(y/n): ", step);
+						System.out.printf("- (%d steps done) continue?(y/n): ", interpreter.getStep());
 						c = readChar();
 					}
 					while (c != 'y' && c != 'n');
@@ -139,7 +149,6 @@ public class Main
 						break;
 					}
 				}
-				step++;
 			}
 			MacroExpander expander = new MacroExpander(env);
 			System.out.print("--> " + expander.expand(interpreter.getLambda()));

@@ -38,6 +38,7 @@ import lambda.LambdaInterpreter;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
+import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
 import lambda.gui.macroview.MacroDefinitionView;
@@ -376,70 +377,61 @@ public class MainFrame extends JFrame
 
 	private boolean stepReduction()
 	{
+		boolean eta = env.getBoolean(Environment.KEY_ETA_REDUCTION);
 		IRedex redex = redexView.getSelectedRedex();
-		if (redex != null)
+		if (redex == null)
 		{
-			interpreter.step(env, redex);
+			redex = RedexFinder.getLeftMostOuterMostRedex(interpreter.getLambda(), eta);
 		}
-		else
-		{
-			interpreter.step(env);
-		}
-		return interpreter.isNormal() || interpreter.isCyclic();
+		return interpreter.step(env, redex);
 	}
 
-	private void step()
+	private boolean step()
 	{
-		if (interpreter == null) return;
-
-		if (!interpreter.isNormal())
+		if (interpreter == null)
 		{
-			boolean terminated = stepReduction();
-			Lambda lambda = interpreter.getLambda();
+			return false;
+		}
+
+		boolean success = true;
+		boolean changed = stepReduction();
+		Lambda lambda = interpreter.getLambda();
+		if (changed)
+		{
 			StringBuilder sb = new StringBuilder();
+			sb.append("--> ");
 			if (env.getBoolean(Environment.KEY_PRINT_STEP))
 			{
 				sb.append(String.format("%3d: ", interpreter.getStep()));
 			}
-			sb.append("--> ");
-			if (!terminated)
+			String s = lambda.toString();
+			if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
 			{
-				String s = lambda.toString();
-				if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
-				{
-					sb.append(s.substring(0, 35));
-					sb.append(" ... ");
-					sb.append(s.substring(s.length() - 35, s.length()));
-				}
-				else
-				{
-					sb.append(s);
-				}
+				sb.append(s.substring(0, 35));
+				sb.append(" ... ");
+				sb.append(s.substring(s.length() - 35, s.length()));
 			}
 			else
 			{
-				MacroExpander expander = new MacroExpander(env);
-				lambda = expander.expand(lambda);
-				sb.append(lambda.toString());
-				if (interpreter.isNormal())
-				{
-					sb.append("    (normal form)");
-				}
-				else if (interpreter.isCyclic())
-				{
-					sb.append("    (cyclic reduction)");
-				}
-				buttonStop.setEnabled(false);
+				sb.append(s);
 			}
 			println(sb.toString());
-
-			if (terminated && env.getBoolean(Environment.KEY_DATA_CONV))
+			if (checkIfCycled() || checkIfNormalForm())
 			{
-				showConvertedData(lambda);
+				reductionTerminated();
+				success = false;
 			}
-
-			updateRedexView();
 		}
+		else
+		{
+			reductionTerminated();
+			success = false;
+		}
+		if (!autoRunning)
+		{
+			updateRedexView(lambda);
+		}
+		return success;
 	}
 
 	private void showConvertedData(Lambda lambda)
@@ -456,11 +448,47 @@ public class MainFrame extends JFrame
 		}
 	}
 
-	private void updateRedexView()
+	private boolean checkIfNormalForm()
 	{
-		if (interpreter == null) return;
-
 		Lambda lambda = interpreter.getLambda();
+		boolean etaEnabled = env.getBoolean(Environment.KEY_ETA_REDUCTION);
+		if (RedexFinder.isNormalForm(lambda, etaEnabled))
+		{
+			printEndState(lambda, "(normal form)");
+			return true;
+		}
+		return false;
+	}
+
+	private boolean checkIfCycled()
+	{
+		if (interpreter.isCyclic())
+		{
+			printEndState(interpreter.getLambda(), "(cyclic reduction)");
+			return true;
+		}
+		return false;
+	}
+
+	private void printEndState(Lambda lambda, String label)
+	{
+		MacroExpander expander = new MacroExpander(env);
+		lambda = expander.expand(lambda, true);
+		println(lambda + "    " + label);
+		if (env.getBoolean(Environment.KEY_DATA_CONV))
+		{
+			showConvertedData(lambda);
+		}
+	}
+
+	private void reductionTerminated()
+	{
+		buttonStop.setEnabled(false);
+		interpreter = null;
+	}
+
+	private void updateRedexView(Lambda lambda)
+	{
 		redexView.setRedexes(lambda);
 		redexView.revalidate();
 		redexView.repaint();
@@ -512,15 +540,22 @@ public class MainFrame extends JFrame
 
 			interpreter = new LambdaInterpreter(lambda);
 
-			if (!checkAuto.isSelected())
+			if (checkIfNormalForm())
 			{
-				tabbedPane.setSelectedIndex(1);
-				updateRedexView();
-				buttonStep.requestFocus();
+				reductionTerminated();
 			}
 			else
 			{
-				startAuto();
+				if (!env.getBoolean(Environment.KEY_AUTO))
+				{
+					tabbedPane.setSelectedIndex(1);
+					buttonStep.requestFocus();
+					updateRedexView(lambda);
+				}
+				else
+				{
+					startAuto();
+				}
 			}
 		}
 	}
@@ -681,55 +716,9 @@ public class MainFrame extends JFrame
 			{
 				while (autoRunning)
 				{
-					boolean terminated = stepReduction();
-					Lambda lambda = interpreter.getLambda();
-
-					StringBuilder sb = new StringBuilder();
-
-					if (env.getBoolean(Environment.KEY_PRINT_STEP))
+					if (!step())
 					{
-						sb.append(String.format("%3d: ", interpreter.getStep()));
-					}
-
-					sb.append("--> ");
-					if (!terminated)
-					{
-						if (env.getBoolean(Environment.KEY_TRACE))
-						{
-							String s = lambda.toString();
-							if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
-							{
-								sb.append(s.substring(0, 35));
-								sb.append(" ... ");
-								sb.append(s.substring(s.length() - 35, s.length()));
-							}
-							else
-							{
-								sb.append(s);
-							}
-							println(sb.toString());
-						}
-					}
-					else
-					{
-						MacroExpander expander = new MacroExpander(env);
-						lambda = expander.expand(lambda);
-
-						sb.append(lambda.toString());
-						if (interpreter.isNormal())
-						{
-							sb.append("    (normal form)");
-						}
-						else if (interpreter.isCyclic())
-						{
-							sb.append("    (cyclic reduction)");
-						}
-						println(sb.toString());
-						if (env.getBoolean(Environment.KEY_DATA_CONV))
-						{
-							showConvertedData(lambda);
-						}
-						autoRunning = false;
+						break;
 					}
 				}
 			}
