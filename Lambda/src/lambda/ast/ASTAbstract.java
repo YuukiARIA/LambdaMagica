@@ -2,8 +2,6 @@ package lambda.ast;
 
 import java.util.HashSet;
 import java.util.Set;
-import lambda.Environment;
-import util.Pair;
 
 public class ASTAbstract extends Lambda implements IRedex
 {
@@ -21,30 +19,6 @@ public class ASTAbstract extends Lambda implements IRedex
 	public boolean isAbstraction()
 	{
 		return true;
-	}
-
-	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env)
-	{
-		IDContext nc = IDContext.deriveContext(context);
-		nc.addBoundedName(name);
-		Pair<Boolean, Lambda> p = e.betaReduction(nc, env);
-		if (p._1)
-		{
-			return p.snd(new ASTAbstract(originalName, name, p._2));
-		}
-		return p.snd(this);
-	}
-
-	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env, IRedex redex)
-	{
-		IDContext nc = IDContext.deriveContext(context);
-		nc.addBoundedName(name);
-		Pair<Boolean, Lambda> p = e.betaReduction(nc, env, redex);
-		if (p._1)
-		{
-			return p.snd(new ASTAbstract(originalName, name, p._2));
-		}
-		return p.snd(this);
 	}
 
 	public Lambda apply(IDContext context, Lambda lambda)

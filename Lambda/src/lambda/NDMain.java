@@ -10,13 +10,11 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import lambda.ast.IDContext;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
 import lambda.serialize.LambdaSerializer;
-import util.Pair;
 
 class LambdaNode
 {
@@ -97,8 +95,8 @@ public class NDMain
 
 			for (IRedex redex : RedexFinder.getRedexList(l))
 			{
-				Pair<Boolean, Lambda> ret = l.betaReduction(IDContext.createContext(), env, redex);
-				LambdaNode p2 = new LambdaNode(p.depth + 1, ret._2);
+				Reducer.Result ret = Reducer.reduce(l, env, redex);
+				LambdaNode p2 = new LambdaNode(p.depth + 1, ret.lambda);
 				addEdge(p, p2);
 				queue.add(p2);
 			}

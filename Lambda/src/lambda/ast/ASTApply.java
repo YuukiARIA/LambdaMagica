@@ -1,8 +1,5 @@
 package lambda.ast;
 
-import lambda.Environment;
-import util.Pair;
-
 public class ASTApply extends Lambda implements IRedex
 {
 	public final Lambda lexpr;
@@ -17,52 +14,6 @@ public class ASTApply extends Lambda implements IRedex
 	public boolean isApplication()
 	{
 		return true;
-	}
-
-	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env)
-	{
-		if (lexpr.isAbstraction())
-		{
-			ASTAbstract abs = (ASTAbstract)lexpr;
-			return Pair.of(true, abs.apply(context, rexpr));
-		}
-
-		Pair<Boolean, Lambda> ret = lexpr.betaReduction(context, env);
-		if (ret._1)
-		{
-			return ret.snd(new ASTApply(ret._2, rexpr));
-		}
-
-		ret = rexpr.betaReduction(context, env);
-		if (ret._1)
-		{
-			return ret.snd(new ASTApply(lexpr, ret._2));
-		}
-
-		return Pair.of(false, (Lambda)this);
-	}
-
-	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env, IRedex redex)
-	{
-		if (this == redex && lexpr.isAbstraction())
-		{
-			ASTAbstract abs = (ASTAbstract)lexpr;
-			return Pair.of(true, abs.apply(context, rexpr));
-		}
-
-		Pair<Boolean, Lambda> ret = lexpr.betaReduction(context, env, redex);
-		if (ret._1)
-		{
-			return ret.snd(new ASTApply(ret._2, rexpr));
-		}
-
-		ret = rexpr.betaReduction(context, env, redex);
-		if (ret._1)
-		{
-			return ret.snd(new ASTApply(lexpr, ret._2));
-		}
-
-		return Pair.of(false, (Lambda)this);
 	}
 
 	protected Lambda substitute(IDContext context, String name, Lambda lambda)

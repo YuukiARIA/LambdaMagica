@@ -1,8 +1,5 @@
 package lambda.ast;
 
-import lambda.Environment;
-import util.Pair;
-
 public class ASTLiteral extends Lambda
 {
 	public final String originalName;
@@ -22,16 +19,6 @@ public class ASTLiteral extends Lambda
 	public boolean isLiteral()
 	{
 		return true;
-	}
-
-	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env)
-	{
-		return Pair.of(false, (Lambda)this);
-	}
-
-	public Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env, IRedex redex)
-	{
-		return Pair.of(false, (Lambda)this);
 	}
 
 	protected Lambda substitute(IDContext context, String name, Lambda lambda)

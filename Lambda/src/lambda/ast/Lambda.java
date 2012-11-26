@@ -1,10 +1,8 @@
 package lambda.ast;
 
-import lambda.Environment;
 import lambda.ast.parser.Lexer;
 import lambda.ast.parser.Parser;
 import lambda.ast.parser.ParserException;
-import util.Pair;
 
 public abstract class Lambda
 {
@@ -32,9 +30,6 @@ public abstract class Lambda
 	{
 		return isMacro() || isLiteral();
 	}
-
-	public abstract Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env);
-	public abstract Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env, IRedex redex);
 
 	protected abstract Lambda substitute(IDContext context, String name, Lambda lambda);
 
