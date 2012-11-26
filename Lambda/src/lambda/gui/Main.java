@@ -72,6 +72,7 @@ public class Main
 
 	public static void main(String[] args)
 	{
+		GUIUtils.preloadFontNames();
 		GUIUtils.setLookAndFeelToSystem();
 
 		mainFrame = new MainFrame();
