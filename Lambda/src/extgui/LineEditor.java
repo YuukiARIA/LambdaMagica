@@ -35,21 +35,21 @@ public class LineEditor extends JTextField
 				{
 					down();
 				}
-				else if (e.getKeyCode() == KeyEvent.VK_ENTER)
-				{
-					lineFeed();
-				}
 			}
 		});
 		initWorking();
 	}
 
-	private void lineFeed()
+	public void saveHistory()
 	{
-		histories.add(0, getText());
-		if (histories.size() >= limit)
+		String text = getText();
+		if (!text.isEmpty())
 		{
-			histories.remove(histories.size() - 1);
+			histories.add(0, text);
+			if (histories.size() >= limit)
+			{
+				histories.remove(histories.size() - 1);
+			}
 		}
 		initWorking();
 	}

@@ -96,6 +96,7 @@ public class MainFrame extends JFrame
 				if (!s.isEmpty())
 				{
 					output.setText("");
+					inputField.saveHistory();
 					inputField.setText("");
 					start(s);
 				}
@@ -112,6 +113,7 @@ public class MainFrame extends JFrame
 				if (!s.isEmpty())
 				{
 					output.setText("");
+					inputField.saveHistory();
 					inputField.setText("");
 					start(s);
 				}
