@@ -18,6 +18,8 @@ import java.io.InputStreamReader;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -29,7 +31,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
@@ -54,7 +55,7 @@ public class MainFrame extends JFrame
 {
 	private JTabbedPane tabbedPane;
 
-	private JTextField inputField;
+	private LineEditor inputField;
 	private JButton buttonStep;
 	private JButton buttonClear;
 
@@ -131,43 +132,32 @@ public class MainFrame extends JFrame
 		output.setFont(env.getGUIFont());
 		leftPanel.add(new JScrollPane(output), BorderLayout.CENTER);
 
-		buttonClear = new JButton("clear output");
-		buttonClear.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				output.setText("");
-			}
-		});
-		buttonPanel.add(buttonClear);
-
-		JButton buttonClearMacros = new JButton("clear macros");
-		buttonClearMacros.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				clearMacros();
-			}
-		});
-		buttonPanel.add(buttonClearMacros);
-
-		checkPrintStep = createOptionCheckBox(Environment.KEY_PRINT_STEP, "print step");
-		buttonPanel.add(checkPrintStep);
-
-		checkShort = createOptionCheckBox(Environment.KEY_SHORT, "short printing");
-		buttonPanel.add(checkShort);
-
-		checkEtaEnabled = createOptionCheckBox(Environment.KEY_ETA_REDUCTION, "enable eta-reduction");
-		buttonPanel.add(checkEtaEnabled);
-
-		checkDataConv = createOptionCheckBox(Environment.KEY_DATA_CONV, "convert result as data");
-		buttonPanel.add(checkDataConv);
-
+		JPanel pAuto = new JPanel();
+		pAuto.setLayout(new BoxLayout(pAuto, BoxLayout.Y_AXIS));
+		pAuto.setBorder(BorderFactory.createTitledBorder("Auto Mode"));
 		checkAuto = createOptionCheckBox(Environment.KEY_AUTO, "auto reduction");
-		buttonPanel.add(checkAuto);
-
+		pAuto.add(checkAuto);
 		checkTraceInAuto = createOptionCheckBox(Environment.KEY_TRACE, "show trace in auto mode");
-		buttonPanel.add(checkTraceInAuto);
+		pAuto.add(checkTraceInAuto);
+		buttonPanel.add(pAuto);
+
+		JPanel pReduction = new JPanel();
+		pReduction.setLayout(new BoxLayout(pReduction, BoxLayout.Y_AXIS));
+		pReduction.setBorder(BorderFactory.createTitledBorder("Reduction"));
+		checkEtaEnabled = createOptionCheckBox(Environment.KEY_ETA_REDUCTION, "enable η-reduction");
+		pReduction.add(checkEtaEnabled);
+		buttonPanel.add(pReduction);
+
+		JPanel pPrinting = new JPanel();
+		pPrinting.setLayout(new BoxLayout(pPrinting, BoxLayout.Y_AXIS));
+		pPrinting.setBorder(BorderFactory.createTitledBorder("Printing"));
+		checkPrintStep = createOptionCheckBox(Environment.KEY_PRINT_STEP, "print step");
+		checkShort = createOptionCheckBox(Environment.KEY_SHORT, "short printing");
+		checkDataConv = createOptionCheckBox(Environment.KEY_DATA_CONV, "show nat/bool data");
+		pPrinting.add(checkPrintStep);
+		pPrinting.add(checkShort);
+		pPrinting.add(checkDataConv);
+		buttonPanel.add(pPrinting);
 
 		buttonStop = new JButton("stop");
 		buttonStop.setEnabled(false);
@@ -194,29 +184,43 @@ public class MainFrame extends JFrame
 		});
 		buttonPanel.add(buttonStop);
 
+		buttonClear = new JButton("clear output");
+		buttonClear.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				output.setText("");
+			}
+		});
+		buttonPanel.add(buttonClear);
+
+		JButton buttonClearMacros = new JButton("clear macros");
+		buttonClearMacros.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				clearMacros();
+			}
+		});
+		buttonPanel.add(buttonClearMacros);
+
 		final int DEF_SIZE = GroupLayout.DEFAULT_SIZE;
 		final int INF_SIZE = Short.MAX_VALUE;
 		GroupLayout gl = new GroupLayout(buttonPanel);
 		gl.setAutoCreateContainerGaps(true);
 		gl.setAutoCreateGaps(true);
 		gl.setHorizontalGroup(gl.createParallelGroup()
-			.addComponent(checkPrintStep, 0, DEF_SIZE, INF_SIZE)
-			.addComponent(checkShort, 0, DEF_SIZE, INF_SIZE)
-			.addComponent(checkEtaEnabled, 0, DEF_SIZE, INF_SIZE)
-			.addComponent(checkDataConv, 0, DEF_SIZE, INF_SIZE)
-			.addComponent(checkAuto, 0, DEF_SIZE, INF_SIZE)
-			.addComponent(checkTraceInAuto, 0, DEF_SIZE, INF_SIZE)
+			.addComponent(pAuto, 0, DEF_SIZE, INF_SIZE)
+			.addComponent(pReduction, 0, DEF_SIZE, INF_SIZE)
+			.addComponent(pPrinting, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(buttonStop, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(buttonClear, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(buttonClearMacros, 0, DEF_SIZE, INF_SIZE)
 		);
 		gl.setVerticalGroup(gl.createSequentialGroup()
-			.addComponent(checkPrintStep)
-			.addComponent(checkShort)
-			.addComponent(checkEtaEnabled)
-			.addComponent(checkDataConv)
-			.addComponent(checkAuto)
-			.addComponent(checkTraceInAuto)
+			.addComponent(pAuto)
+			.addComponent(pReduction)
+			.addComponent(pPrinting)
 			.addComponent(buttonStop)
 			.addComponent(buttonClear)
 			.addComponent(buttonClearMacros)
@@ -257,7 +261,7 @@ public class MainFrame extends JFrame
 		});
 		sp.setDividerLocation(Short.MAX_VALUE);
 		add(sp);
-		setSize(600, 500);
+		setSize(700, 500);
 
 		setupAcceleration();
 
