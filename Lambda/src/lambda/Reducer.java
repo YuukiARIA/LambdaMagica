@@ -42,11 +42,10 @@ public class Reducer
 	{
 		private Environment env;
 		private IRedex redex;
-		private boolean etaEnabled;
 
 		public Result visit(ASTAbstract abs, IDContext context)
 		{
-			if (etaEnabled && isRedex(abs) && abs.e instanceof ASTApply)
+			if (isRedex(abs) && abs.e instanceof ASTApply)
 			{
 				ASTApply app = (ASTApply)abs.e;
 				if (app.rexpr instanceof ASTLiteral)
