@@ -38,29 +38,7 @@ public class LambdaInterpreter
 
 	public boolean step(Environment env)
 	{
-		if (!isNormal && !isCyclic)
-		{
-			if (isEtaEnabled)
-			{
-				Pair<Boolean, Lambda> ret = lambda.etaReduction();
-				if (ret._1)
-				{
-					lambda = ret._2;
-					isNormal = NormalFormChecker.isNormalForm(lambda);
-					return true;
-				}
-			}
-			Pair<Boolean, Lambda> ret = lambda.betaReduction(IDContext.createContext(), env);
-			isCyclic = LambdaMatcher.structuralEquivalent(lambda, ret._2);
-			lambda = ret._2;
-			isNormal = NormalFormChecker.isNormalForm(lambda);
-			if (ret._1)
-			{
-				stepCount++;
-			}
-			return ret._1 && !isCyclic;
-		}
-		return false;
+		return step(env, null);
 	}
 
 	public boolean step(Environment env, IRedex redex)
@@ -77,15 +55,15 @@ public class LambdaInterpreter
 					return true;
 				}
 			}
-			Pair<Boolean, Lambda> ret = lambda.betaReduction(IDContext.createContext(), env, redex);
-			isCyclic = LambdaMatcher.structuralEquivalent(lambda, ret._2);
-			lambda = ret._2;
+			Reducer.Result ret = Reducer.reduce(lambda, env, redex);
+			isCyclic = AlphaComparator.alphaEquiv(lambda, ret.lambda);
+			lambda = ret.lambda;
 			isNormal = NormalFormChecker.isNormalForm(lambda);
-			if (ret._1)
+			if (ret.reduced)
 			{
 				stepCount++;
 			}
-			return ret._1 && !isCyclic;
+			return ret.reduced && !isCyclic;
 		}
 		return false;
 	}
