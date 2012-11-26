@@ -1,6 +1,6 @@
 ﻿
 
-                  Lambda * Magica      ver 3.60
+                  Lambda * Magica      ver 3.70
 
          Untyped Lambda Calculus Interpreter for Education
 
@@ -68,6 +68,41 @@
   prelude.lm.txt, attached in the package.
   Type ':l prelude' to load this.
 
+2.1 η-reduction
+
+  Let M is an lambda term, following transformation is called η-reduction:
+
+    \x.Mx  -->η  M
+
+  based on extensionality, where variable x is not in free
+  variables of M.
+  For example, following lambda term:
+
+    \x.(\ab.aab)x
+
+  and
+
+    \ab.aab
+
+  are extensionally equivalent -- both are reduced same result by applying to
+  any lambda terms.
+  Therefore, following reduction is allowed by the η-reduction:
+
+    \x.(\ab.aab)x  -->η  \ab.aab
+
+  On the other hand, reducing following lambda term:
+
+    \x.(\ab.abx)x
+
+  to
+
+    \ab.abx
+
+  is not allowed -- the term \ab.abx contains free variable x.
+
+  In GUI interpreter, check 'enable eta-reduction' in order to display
+  η-redexes and select one of them in the Redex view.
+
 
 3. System Commands
 
@@ -91,6 +126,11 @@
 
 
 4. Versions
+
+- ver 3.70 (November 26, 2012)
+  add eta-reduction
+  fix several small bugs
+  refactoring
 
 - ver 3.60 (November 23, 2012)
   maintained GUI mode, set GUI mode as default lauch mode

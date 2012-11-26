@@ -146,7 +146,7 @@ public class MainFrame extends JFrame
 		JPanel pReduction = new JPanel();
 		pReduction.setLayout(new BoxLayout(pReduction, BoxLayout.Y_AXIS));
 		pReduction.setBorder(BorderFactory.createTitledBorder("Reduction"));
-		checkEtaEnabled = createOptionCheckBox(Environment.KEY_ETA_REDUCTION, "enable η-reduction");
+		checkEtaEnabled = createOptionCheckBox(Environment.KEY_ETA_REDUCTION, "enable eta-reduction");
 		pReduction.add(checkEtaEnabled);
 		buttonPanel.add(pReduction);
 
@@ -404,24 +404,27 @@ public class MainFrame extends JFrame
 		Lambda lambda = interpreter.getLambda();
 		if (changed)
 		{
-			StringBuilder sb = new StringBuilder();
-			sb.append("--> ");
-			if (env.getBoolean(Environment.KEY_PRINT_STEP))
+			if (!autoRunning || env.getBoolean(Environment.KEY_TRACE))
 			{
-				sb.append(String.format("%3d: ", interpreter.getStep()));
+				StringBuilder sb = new StringBuilder();
+				sb.append("--> ");
+				if (env.getBoolean(Environment.KEY_PRINT_STEP))
+				{
+					sb.append(String.format("%3d: ", interpreter.getStep()));
+				}
+				String s = lambda.toString();
+				if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
+				{
+					sb.append(s.substring(0, 35));
+					sb.append(" ... ");
+					sb.append(s.substring(s.length() - 35, s.length()));
+				}
+				else
+				{
+					sb.append(s);
+				}
+				println(sb.toString());
 			}
-			String s = lambda.toString();
-			if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
-			{
-				sb.append(s.substring(0, 35));
-				sb.append(" ... ");
-				sb.append(s.substring(s.length() - 35, s.length()));
-			}
-			else
-			{
-				sb.append(s);
-			}
-			println(sb.toString());
 			if (checkIfCycled() || checkIfNormalForm())
 			{
 				reductionTerminated();
@@ -480,7 +483,7 @@ public class MainFrame extends JFrame
 	{
 		MacroExpander expander = new MacroExpander(env);
 		lambda = expander.expand(lambda, true);
-		println(lambda + "    " + label);
+		println("==> " + lambda + "    " + label);
 		if (env.getBoolean(Environment.KEY_DATA_CONV))
 		{
 			showConvertedData(lambda);
