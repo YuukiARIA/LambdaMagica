@@ -7,6 +7,17 @@ import java.util.Set;
 public class RedexFinder
 {
 	private static VisitorImpl visitor;
+	private static LOVisitor loVisitor;
+
+	public static IRedex getLeftMostOuterMostRedex(Lambda lambda, boolean etaEnabled)
+	{
+		if (loVisitor == null)
+		{
+			loVisitor = new LOVisitor();
+		}
+		loVisitor.etaEnabled = etaEnabled;
+		return lambda.accept(loVisitor);
+	}
 
 	public static List<IRedex> getRedexList(Lambda lambda)
 	{
@@ -19,61 +30,104 @@ public class RedexFinder
 		{
 			visitor = new VisitorImpl();
 		}
-		visitor.enableEta = enableEta;
+		visitor.etaEnabled = enableEta;
 		List<IRedex> redexes = new ArrayList<IRedex>();
 		lambda.accept(visitor, redexes);
 		return redexes;
 	}
 
-	private static class VisitorImpl implements Lambda.VisitorP<List<IRedex>>
+	private static boolean isBetaRedex(ASTApply app)
 	{
-		private boolean enableEta;
+		return app.lexpr.isAbstraction();
+	}
 
-		public void visit(ASTAbstract abs, List<IRedex> param)
+	private static boolean isEtaRedex(ASTAbstract abs)
+	{
+		if (abs.e.isApplication())
 		{
-			if (enableEta && isEtaRedex(abs))
+			ASTApply app = (ASTApply)abs.e;
+			if (app.rexpr.isLiteral())
 			{
-				param.add(abs);
-			}
-			abs.e.accept(this, param);
-		}
-
-		public void visit(ASTApply app, List<IRedex> param)
-		{
-			if (app.lexpr.isAbstraction())
-			{
-				param.add(app);
-			}
-			app.lexpr.accept(this, param);
-			app.rexpr.accept(this, param);
-		}
-
-		public void visit(ASTLiteral literal, List<IRedex> param)
-		{
-		}
-
-		public void visit(ASTMacro macro, List<IRedex> param)
-		{
-			param.add(macro);
-		}
-
-		private static boolean isEtaRedex(ASTAbstract abs)
-		{
-			if (abs.e.isApplication())
-			{
-				ASTApply app = (ASTApply)abs.e;
-				if (app.rexpr.isLiteral())
+				ASTLiteral x = (ASTLiteral)app.rexpr;
+				VariableCollector vc = new VariableCollector(app.lexpr);
+				Set<String> fv = vc.getFreeVariables();
+				if (!fv.contains(x.name))
 				{
-					ASTLiteral x = (ASTLiteral)app.rexpr;
-					VariableCollector vc = new VariableCollector(app.lexpr);
-					Set<String> fv = vc.getFreeVariables();
-					if (!fv.contains(x.name))
-					{
-						return true;
-					}
+					return true;
 				}
 			}
-			return false;
+		}
+		return false;
+	}
+
+	private static class VisitorImpl implements Lambda.VisitorP<List<IRedex>>
+	{
+		private boolean etaEnabled;
+
+		public void visit(ASTAbstract abs, List<IRedex> redexes)
+		{
+			if (etaEnabled && isEtaRedex(abs))
+			{
+				redexes.add(abs);
+			}
+			abs.e.accept(this, redexes);
+		}
+
+		public void visit(ASTApply app, List<IRedex> redexes)
+		{
+			if (isBetaRedex(app))
+			{
+				redexes.add(app);
+			}
+			app.lexpr.accept(this, redexes);
+			app.rexpr.accept(this, redexes);
+		}
+
+		public void visit(ASTLiteral literal, List<IRedex> redexes)
+		{
+		}
+
+		public void visit(ASTMacro macro, List<IRedex> redexes)
+		{
+			redexes.add(macro);
+		}
+	}
+
+	private static class LOVisitor implements Lambda.VisitorR<IRedex>
+	{
+		private boolean etaEnabled;
+
+		public IRedex visit(ASTAbstract abs)
+		{
+			if (etaEnabled && isEtaRedex(abs))
+			{
+				return abs;
+			}
+			return abs.e.accept(this);
+		}
+
+		public IRedex visit(ASTApply app)
+		{
+			if (isBetaRedex(app))
+			{
+				return app;
+			}
+			IRedex redex = app.lexpr.accept(this);
+			if (redex == null)
+			{
+				redex = app.rexpr.accept(this);
+			}
+			return redex;
+		}
+
+		public IRedex visit(ASTLiteral literal)
+		{
+			return null;
+		}
+
+		public IRedex visit(ASTMacro macro)
+		{
+			return macro;
 		}
 	}
 }

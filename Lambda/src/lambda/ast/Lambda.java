@@ -36,11 +36,6 @@ public abstract class Lambda
 	public abstract Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env);
 	public abstract Pair<Boolean, Lambda> betaReduction(IDContext context, Environment env, IRedex redex);
 
-	public Pair<Boolean, Lambda> etaReduction()
-	{
-		return Pair.of(Boolean.valueOf(false), this);
-	}
-
 	protected abstract Lambda substitute(IDContext context, String name, Lambda lambda);
 
 	public abstract void accept(Visitor visitor);

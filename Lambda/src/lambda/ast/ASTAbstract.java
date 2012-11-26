@@ -47,25 +47,6 @@ public class ASTAbstract extends Lambda implements IRedex
 		return p.snd(this);
 	}
 
-	public Pair<Boolean, Lambda> etaReduction()
-	{
-		if (e instanceof ASTApply)
-		{
-			ASTApply app = (ASTApply)this.e;
-			if (app.rexpr instanceof ASTLiteral)
-			{
-				ASTLiteral x = (ASTLiteral)app.rexpr;
-				VariableCollector vc = new VariableCollector(app.lexpr);
-				Set<String> fv = vc.getFreeVariables();
-				if (!fv.contains(x.name))
-				{
-					return Pair.of(true, app.lexpr);
-				}
-			}
-		}
-		return Pair.of(false, (Lambda)this);
-	}
-
 	public Lambda apply(IDContext context, Lambda lambda)
 	{
 		IDContext nc = IDContext.deriveContext(context);

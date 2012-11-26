@@ -6,12 +6,10 @@ import lambda.ast.ASTAbstract;
 import lambda.ast.ASTApply;
 import lambda.ast.ASTLiteral;
 import lambda.ast.ASTMacro;
-import lambda.ast.IDContext;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.Lambda.VisitorR;
 import lambda.ast.VariableCollector;
-import util.Pair;
 
 public class LambdaInterpreter
 {
@@ -45,16 +43,6 @@ public class LambdaInterpreter
 	{
 		if (!isNormal && !isCyclic)
 		{
-			if (isEtaEnabled)
-			{
-				Pair<Boolean, Lambda> ret = lambda.etaReduction();
-				if (ret._1)
-				{
-					lambda = ret._2;
-					isNormal = NormalFormChecker.isNormalForm(lambda);
-					return true;
-				}
-			}
 			Reducer.Result ret = Reducer.reduce(lambda, env, redex);
 			isCyclic = AlphaComparator.alphaEquiv(lambda, ret.lambda);
 			lambda = ret.lambda;
