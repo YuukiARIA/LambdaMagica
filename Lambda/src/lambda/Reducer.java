@@ -1,5 +1,7 @@
 package lambda;
 
+import java.util.Set;
+
 import lambda.ast.ASTAbstract;
 import lambda.ast.ASTApply;
 import lambda.ast.ASTLiteral;
@@ -7,6 +9,7 @@ import lambda.ast.ASTMacro;
 import lambda.ast.IDContext;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
+import lambda.ast.VariableCollector;
 
 public class Reducer
 {
@@ -39,9 +42,25 @@ public class Reducer
 	{
 		private Environment env;
 		private IRedex redex;
+		private boolean etaEnabled;
 
 		public Result visit(ASTAbstract abs, IDContext context)
 		{
+			if (etaEnabled && isRedex(abs) && abs.e instanceof ASTApply)
+			{
+				ASTApply app = (ASTApply)abs.e;
+				if (app.rexpr instanceof ASTLiteral)
+				{
+					ASTLiteral x = (ASTLiteral)app.rexpr;
+					VariableCollector vc = new VariableCollector(app.lexpr);
+					Set<String> fv = vc.getFreeVariables();
+					if (!fv.contains(x.name))
+					{
+						return new Result(app.lexpr, true);
+					}
+				}
+			}
+
 			IDContext nc = IDContext.deriveContext(context);
 			nc.addBoundedName(abs.name);
 			Result ret = reduce(abs.e, nc);
@@ -54,7 +73,7 @@ public class Reducer
 
 		public Result visit(ASTApply app, IDContext context)
 		{
-			if (app == redex && app.lexpr.isAbstraction())
+			if (isRedex(app) && app.lexpr.isAbstraction())
 			{
 				ASTAbstract abs = (ASTAbstract)app.lexpr;
 				return new Result(abs.apply(context, app.rexpr), true);
@@ -82,10 +101,13 @@ public class Reducer
 
 		public Result visit(ASTMacro m, IDContext context)
 		{
-			Lambda l = env.expandMacro(m.name);
-			if (l != null)
+			if (isRedex(m))
 			{
-				return new Result(l, true);
+				Lambda l = env.expandMacro(m.name);
+				if (l != null)
+				{
+					return new Result(l, true);
+				}
 			}
 			return new Result(m, false);
 		}
@@ -93,6 +115,11 @@ public class Reducer
 		private Result reduce(Lambda lambda, IDContext context)
 		{
 			return lambda.accept(this, context);
+		}
+
+		private boolean isRedex(IRedex r)
+		{
+			return redex == null || redex == r;
 		}
 	}
 }
