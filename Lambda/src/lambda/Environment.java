@@ -29,6 +29,7 @@ public class Environment
 	public static final String KEY_SHORT = "short";
 	public static final String KEY_DATA_CONV = "data_abstraction";
 	public static final String KEY_AUTO = "auto";
+	public static final String KEY_ETA_REDUCTION = "eta_reduction";
 	public static final String KEY_GUI_FONT_FAMILY = "gui.fontfamily";
 	public static final String KEY_GUI_FONT_SIZE = "gui.fontsize";
 	public static final String KEY_GUI_FONT_ADDITION = "gui.ui.font.addition";
@@ -47,6 +48,7 @@ public class Environment
 		set(KEY_SHORT, true);
 		set(KEY_DATA_CONV, false);
 		set(KEY_AUTO, false);
+		set(KEY_ETA_REDUCTION, false);
 		set(KEY_GUI_FONT_FAMILY, Font.DIALOG_INPUT);
 		set(KEY_GUI_FONT_SIZE, 12);
 		set(KEY_GUI_FONT_ADDITION, 0);

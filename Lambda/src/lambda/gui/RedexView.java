@@ -18,6 +18,7 @@ import java.util.List;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import lambda.Environment;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.RedexFinder;
@@ -90,7 +91,7 @@ public class RedexView extends JPanel
 	public void setRedexes(Lambda lambda)
 	{
 		clearLabels();
-		for (IRedex redex : RedexFinder.getRedexList(lambda))
+		for (IRedex redex : RedexFinder.getRedexList(lambda, Environment.getEnvironment().getBoolean(Environment.KEY_ETA_REDUCTION)))
 		{
 			LambdaLabel label = builder.createLambdaLabel(lambda, redex);
 			addLabel(redex, label);

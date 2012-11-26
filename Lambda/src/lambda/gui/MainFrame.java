@@ -59,6 +59,7 @@ public class MainFrame extends JFrame
 
 	private JCheckBox checkPrintStep;
 	private JCheckBox checkShort;
+	private JCheckBox checkEtaEnabled;
 	private JCheckBox checkDataConv;
 	private JCheckBox checkAuto;
 	private JCheckBox checkTraceInAuto;
@@ -155,6 +156,9 @@ public class MainFrame extends JFrame
 		checkShort = createOptionCheckBox(Environment.KEY_SHORT, "short printing");
 		buttonPanel.add(checkShort);
 
+		checkEtaEnabled = createOptionCheckBox(Environment.KEY_ETA_REDUCTION, "enable eta-reduction");
+		buttonPanel.add(checkEtaEnabled);
+
 		checkDataConv = createOptionCheckBox(Environment.KEY_DATA_CONV, "convert result as data");
 		buttonPanel.add(checkDataConv);
 
@@ -197,6 +201,7 @@ public class MainFrame extends JFrame
 		gl.setHorizontalGroup(gl.createParallelGroup()
 			.addComponent(checkPrintStep, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(checkShort, 0, DEF_SIZE, INF_SIZE)
+			.addComponent(checkEtaEnabled, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(checkDataConv, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(checkAuto, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(checkTraceInAuto, 0, DEF_SIZE, INF_SIZE)
@@ -208,6 +213,7 @@ public class MainFrame extends JFrame
 			.addGroup(gl.createSequentialGroup()
 				.addComponent(checkPrintStep)
 				.addComponent(checkShort)
+				.addComponent(checkEtaEnabled)
 				.addComponent(checkDataConv)
 				.addComponent(checkAuto)
 				.addComponent(checkTraceInAuto)
