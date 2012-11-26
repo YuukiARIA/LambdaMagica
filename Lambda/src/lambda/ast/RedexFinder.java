@@ -19,6 +19,11 @@ public class RedexFinder
 		return lambda.accept(loVisitor);
 	}
 
+	public static boolean isNormalForm(Lambda lambda, boolean etaEnabled)
+	{
+		return getLeftMostOuterMostRedex(lambda, etaEnabled) == null;
+	}
+
 	public static List<IRedex> getRedexList(Lambda lambda)
 	{
 		return getRedexList(lambda, false);
