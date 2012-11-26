@@ -209,18 +209,16 @@ public class MainFrame extends JFrame
 			.addComponent(buttonClear, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(buttonClearMacros, 0, DEF_SIZE, INF_SIZE)
 		);
-		gl.setVerticalGroup(gl.createParallelGroup()
-			.addGroup(gl.createSequentialGroup()
-				.addComponent(checkPrintStep)
-				.addComponent(checkShort)
-				.addComponent(checkEtaEnabled)
-				.addComponent(checkDataConv)
-				.addComponent(checkAuto)
-				.addComponent(checkTraceInAuto)
-				.addComponent(buttonStop)
-				.addComponent(buttonClear)
-				.addComponent(buttonClearMacros)
-			)
+		gl.setVerticalGroup(gl.createSequentialGroup()
+			.addComponent(checkPrintStep)
+			.addComponent(checkShort)
+			.addComponent(checkEtaEnabled)
+			.addComponent(checkDataConv)
+			.addComponent(checkAuto)
+			.addComponent(checkTraceInAuto)
+			.addComponent(buttonStop)
+			.addComponent(buttonClear)
+			.addComponent(buttonClearMacros)
 		);
 		buttonPanel.setLayout(gl);
 
@@ -260,19 +258,28 @@ public class MainFrame extends JFrame
 		add(sp);
 		setSize(600, 500);
 
-		initializeCommands();
+		setupAcceleration();
 
+		initializeCommands();
+	}
+
+	private void setupAcceleration()
+	{
 		int mod = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+		String keyInc = "font.size.increase";
+		String keyDec = "font.size.decrease";
+		String keyDef = "font.size.default";
+
 		InputMap imap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, mod), "font.size.increase");
-		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, mod), "font.size.increase");
-		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SEMICOLON, mod), "font.size.increase");
-		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, mod), "font.size.decrease");
-		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, mod), "font.size.decrease");
-		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_0, mod), "font.size.reset");
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, mod), keyInc);
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, mod), keyInc);
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SEMICOLON, mod), keyInc);
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, mod), keyDec);
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, mod), keyDec);
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_0, mod), keyDef);
 
 		ActionMap amap = getRootPane().getActionMap();
-		amap.put("font.size.increase", new AbstractAction()
+		amap.put(keyInc, new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
@@ -285,7 +292,7 @@ public class MainFrame extends JFrame
 				}
 			}
 		});
-		amap.put("font.size.decrease", new AbstractAction()
+		amap.put(keyDec, new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
@@ -298,7 +305,7 @@ public class MainFrame extends JFrame
 				}
 			}
 		});
-		amap.put("font.size.reset", new AbstractAction()
+		amap.put(keyDef, new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
@@ -518,79 +525,11 @@ public class MainFrame extends JFrame
 		}
 	}
 
-	// TODO: refactor
 	private void startAuto()
 	{
-		buttonStop.setEnabled(true);
-		thread = new Thread()
-		{
-			public void run()
-			{
-				try
-				{
-					while (autoRunning)
-					{
-						boolean terminated = stepReduction();
-						Lambda lambda = interpreter.getLambda();
-						StringBuilder sb = new StringBuilder();
-						if (env.getBoolean(Environment.KEY_PRINT_STEP))
-						{
-							sb.append(String.format("%3d: ", interpreter.getStep()));
-						}
-						sb.append("--> ");
-						if (!terminated && checkTraceInAuto.isSelected())
-						{
-							String s = lambda.toString();
-							if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
-							{
-								sb.append(s.substring(0, 35));
-								sb.append(" ... ");
-								sb.append(s.substring(s.length() - 35, s.length()));
-							}
-							else
-							{
-								sb.append(s);
-							}
-							println(sb.toString());
-						}
-						else if (terminated)
-						{
-							MacroExpander expander = new MacroExpander(env);
-							lambda = expander.expand(lambda);
-
-							sb.append(lambda.toString());
-							if (interpreter.isNormal())
-							{
-								sb.append("    (normal form)");
-							}
-							else if (interpreter.isCyclic())
-							{
-								sb.append("    (cyclic reduction)");
-							}
-							println(sb.toString());
-							if (env.getBoolean(Environment.KEY_DATA_CONV))
-							{
-								showConvertedData(lambda);
-							}
-							autoRunning = false;
-						}
-					}
-				}
-				catch (StackOverflowError e)
-				{
-					println("Fatal Error: generated too large structure");
-				}
-				finally
-				{
-					buttonStop.setEnabled(false);
-					autoRunning = false;
-					thread = null;
-				}
-			}
-		};
-		thread.setName("AutoRunningThread");
-		thread.setDaemon(true);
 		autoRunning = true;
+		buttonStop.setEnabled(true);
+		thread = new AutoRunningThread();
 		thread.start();
 	}
 
@@ -726,5 +665,84 @@ public class MainFrame extends JFrame
 				output.setCaretPosition(output.getText().length());
 			}
 		});
+	}
+
+	private class AutoRunningThread extends Thread
+	{
+		public AutoRunningThread()
+		{
+			setName("AutoRunningThread");
+			setDaemon(true);
+		}
+
+		public void run()
+		{
+			try
+			{
+				while (autoRunning)
+				{
+					boolean terminated = stepReduction();
+					Lambda lambda = interpreter.getLambda();
+
+					StringBuilder sb = new StringBuilder();
+
+					if (env.getBoolean(Environment.KEY_PRINT_STEP))
+					{
+						sb.append(String.format("%3d: ", interpreter.getStep()));
+					}
+
+					sb.append("--> ");
+					if (!terminated)
+					{
+						if (env.getBoolean(Environment.KEY_TRACE))
+						{
+							String s = lambda.toString();
+							if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
+							{
+								sb.append(s.substring(0, 35));
+								sb.append(" ... ");
+								sb.append(s.substring(s.length() - 35, s.length()));
+							}
+							else
+							{
+								sb.append(s);
+							}
+							println(sb.toString());
+						}
+					}
+					else
+					{
+						MacroExpander expander = new MacroExpander(env);
+						lambda = expander.expand(lambda);
+
+						sb.append(lambda.toString());
+						if (interpreter.isNormal())
+						{
+							sb.append("    (normal form)");
+						}
+						else if (interpreter.isCyclic())
+						{
+							sb.append("    (cyclic reduction)");
+						}
+						println(sb.toString());
+						if (env.getBoolean(Environment.KEY_DATA_CONV))
+						{
+							showConvertedData(lambda);
+						}
+						autoRunning = false;
+					}
+				}
+			}
+			catch (StackOverflowError e)
+			{
+				println("Fatal Error: generated too large structure");
+			}
+			finally
+			{
+				buttonStop.setEnabled(false);
+				autoRunning = false;
+				thread = null;
+			}
+		}
 	}
 }
