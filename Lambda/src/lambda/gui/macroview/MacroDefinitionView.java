@@ -2,6 +2,7 @@ package lambda.gui.macroview;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -51,6 +52,8 @@ public class MacroDefinitionView extends JPanel
 		if (macroTable != null)
 		{
 			macroTable.setFont(font);
+			FontMetrics fm = getFontMetrics(font);
+			macroTable.setRowHeight(fm.getHeight());
 		}
 	}
 

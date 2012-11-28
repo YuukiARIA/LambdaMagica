@@ -342,7 +342,7 @@ public class MainFrame extends JFrame
 		inputField.setFont(font);
 		output.setFont(font);
 		redexView.setFont(font);
-		macroView.setFont(font.deriveFont(Font.PLAIN, 12));
+		macroView.setFont(font);
 	}
 
 	private void start(String text)
