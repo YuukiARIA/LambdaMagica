@@ -5,7 +5,7 @@ import lambda.gui.lambdalabel.LambdaLabel.ApplyLabel;
 import lambda.gui.lambdalabel.LambdaLabel.LiteralLabel;
 import lambda.gui.lambdalabel.LambdaLabel.MacroLabel;
 import lambda.gui.lambdalabel.LambdaLabel.RedexWrapper;
-import lambda.gui.lambdalabel.LambdaLabel.Visitor;
+import lambda.gui.lambdalabel.LambdaLabel.VisitorP;
 
 public class LambdaLabelStringBuilder
 {
@@ -18,7 +18,7 @@ public class LambdaLabelStringBuilder
 		return sb.toString();
 	}
 
-	private static class VisitorImpl implements Visitor<StringBuilder>
+	private static class VisitorImpl implements VisitorP<StringBuilder>
 	{
 		public void visit(LiteralLabel l, StringBuilder sb)
 		{
@@ -27,8 +27,8 @@ public class LambdaLabelStringBuilder
 
 		public void visit(ApplyLabel app, StringBuilder sb)
 		{
-			boolean lpar = app.lexpr.isAbstract();
-			boolean rpar = !app.rexpr.isAtomic();
+			boolean lpar = app.lexpr.isParenRequiredInAppLeft();
+			boolean rpar = app.rexpr.isParenRequiredInAppRight();
 
 			if (lpar) sb.append('(');
 			app.lexpr.accept(this, sb);

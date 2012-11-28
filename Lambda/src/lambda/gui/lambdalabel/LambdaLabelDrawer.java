@@ -10,9 +10,9 @@ import lambda.gui.lambdalabel.LambdaLabel.ApplyLabel;
 import lambda.gui.lambdalabel.LambdaLabel.LiteralLabel;
 import lambda.gui.lambdalabel.LambdaLabel.MacroLabel;
 import lambda.gui.lambdalabel.LambdaLabel.RedexWrapper;
-import lambda.gui.lambdalabel.LambdaLabel.Visitor;
+import lambda.gui.lambdalabel.LambdaLabel.VisitorP;
 
-public class LambdaLabelDrawer implements Visitor<Boolean>
+public class LambdaLabelDrawer implements VisitorP<Boolean>
 {
 	private Graphics g;
 	private FontMetrics fm;
@@ -64,19 +64,15 @@ public class LambdaLabelDrawer implements Visitor<Boolean>
 
 	public void visit(ApplyLabel app, Boolean paren)
 	{
-		boolean lpar = app.lexpr.isAbstract();
-		boolean rpar = !app.rexpr.isAtomic();
+		boolean lpar = app.lexpr.isParenRequiredInAppLeft();
+		boolean rpar = app.rexpr.isParenRequiredInAppRight();
 
-		if (paren)
-		{
-			drawString("(");
-		}
+		if (paren) drawString("(");
+
 		app.lexpr.accept(this, lpar);
 		app.rexpr.accept(this, rpar);
-		if (paren)
-		{
-			drawString(")");
-		}
+
+		if (paren) drawString(")");
 	}
 
 	public void visit(AbstractLabel abs, Boolean paren)
@@ -90,7 +86,6 @@ public class LambdaLabelDrawer implements Visitor<Boolean>
 			e = eAbs.body;
 		}
 		s += ".";
-
 		if (paren) drawString("(");
 		drawString(s);
 		e.accept(this, false);

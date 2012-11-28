@@ -11,6 +11,11 @@ import lambda.ast.Lambda;
 
 public class LambdaLabelBuilder
 {
+	private static final Color COLOR_ABS = new Color(255, 240, 100, 200);
+	private static final Color COLOR_APP_L = new Color(255, 200, 200, 200);
+	private static final Color COLOR_APP_R = new Color(200, 200, 255, 200);
+	private static final Color COLOR_MACRO = new Color(200, 255, 200, 200);
+
 	private IRedex redex;
 	private ConvertVisitor visitor;
 
@@ -32,7 +37,7 @@ public class LambdaLabelBuilder
 			LambdaLabel label = LambdaLabel.abs(abs.name, abs.e.accept(this));
 			if (abs == redex)
 			{
-				label = LambdaLabel.wrap(label, new Color(255, 240, 100, 200));
+				label = LambdaLabel.wrap(label, COLOR_ABS);
 			}
 			return label;
 		}
@@ -42,8 +47,8 @@ public class LambdaLabelBuilder
 			LambdaLabel left = app.lexpr.accept(this), right = app.rexpr.accept(this);
 			if (app == redex)
 			{
-				left = LambdaLabel.wrap(left, new Color(255, 220, 220, 200));
-				right = LambdaLabel.wrap(right, new Color(220, 220, 255, 200));
+				left = LambdaLabel.wrap(left, COLOR_APP_L);
+				right = LambdaLabel.wrap(right, COLOR_APP_R);
 			}
 			return LambdaLabel.apply(left, right);
 		}
@@ -58,7 +63,7 @@ public class LambdaLabelBuilder
 			LambdaLabel label = LambdaLabel.macro(m.name);
 			if (m == redex)
 			{
-				label = LambdaLabel.wrap(label, new Color(220, 255, 220, 200));
+				label = LambdaLabel.wrap(label, COLOR_MACRO);
 			}
 			return label;
 		}

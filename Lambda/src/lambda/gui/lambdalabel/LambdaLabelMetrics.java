@@ -48,8 +48,8 @@ public class LambdaLabelMetrics
 
 		public Integer visit(ApplyLabel app, Boolean paren)
 		{
-			boolean lpar = app.lexpr.isAbstract();
-			boolean rpar = !app.rexpr.isAtomic();
+			boolean lpar = app.lexpr.isParenRequiredInAppLeft();
+			boolean rpar = app.rexpr.isParenRequiredInAppRight();
 			int width = app.lexpr.accept(this, lpar) + app.rexpr.accept(this, rpar);
 			if (paren)
 			{

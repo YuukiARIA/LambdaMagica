@@ -5,7 +5,6 @@ import java.awt.Color;
 public abstract class LambdaLabel
 {
 	private int width;
-	protected boolean parenRequired;
 
 	public int getWidth()
 	{
@@ -17,10 +16,12 @@ public abstract class LambdaLabel
 		this.width = width;
 	}
 
+	public abstract boolean isParenRequiredInAppLeft();
+	public abstract boolean isParenRequiredInAppRight();
 	public abstract boolean isAbstract();
 	public abstract boolean isAtomic();
 
-	public abstract <T> void accept(Visitor<T> visitor, T param);
+	public abstract <T> void accept(VisitorP<T> visitor, T param);
 	public abstract <T> T accept(VisitorR<T> visitor);
 	public abstract <TRet, TParam> TRet accept(VisitorRP<TRet, TParam> visitor, TParam param);
 
@@ -49,7 +50,7 @@ public abstract class LambdaLabel
 		return new RedexWrapper(l, c);
 	}
 
-	public static interface Visitor<T>
+	public static interface VisitorP<T>
 	{
 		public void visit(LiteralLabel l, T param);
 		public void visit(ApplyLabel app, T param);
@@ -85,10 +86,20 @@ public abstract class LambdaLabel
 			this.name = name;
 		}
 
+		public boolean isParenRequiredInAppLeft()
+		{
+			return false;
+		}
+
+		public boolean isParenRequiredInAppRight()
+		{
+			return false;
+		}
+
 		public boolean isAbstract() { return false; }
 		public boolean isAtomic() { return true; }
 
-		public <T> void accept(Visitor<T> visitor, T param) { visitor.visit(this, param); }
+		public <T> void accept(VisitorP<T> visitor, T param) { visitor.visit(this, param); }
 		public <T> T accept(VisitorR<T> visitor) { return visitor.visit(this); }
 		public <TRet, TParam> TRet accept(VisitorRP<TRet, TParam> visitor, TParam param) { return visitor.visit(this, param); }
 	}
@@ -98,39 +109,26 @@ public abstract class LambdaLabel
 		public final LambdaLabel lexpr;
 		public final LambdaLabel rexpr;
 
-		private boolean leftParen;
-		private boolean rightParen;
-
 		public ApplyLabel(LambdaLabel x, LambdaLabel y)
 		{
 			this.lexpr = x;
 			this.rexpr = y;
 		}
 
-		public void setLeftParen(boolean b)
+		public boolean isParenRequiredInAppLeft()
 		{
-			leftParen = b;
+			return false;
 		}
 
-		public void setRightParen(boolean b)
+		public boolean isParenRequiredInAppRight()
 		{
-			rightParen = b;
-		}
-
-		public boolean isLeftParen()
-		{
-			return leftParen;
-		}
-
-		public boolean isRightParen()
-		{
-			return rightParen;
+			return true;
 		}
 
 		public boolean isAbstract() { return false; }
 		public boolean isAtomic() { return false; }
 
-		public <T> void accept(Visitor<T> visitor, T param) { visitor.visit(this, param); }
+		public <T> void accept(VisitorP<T> visitor, T param) { visitor.visit(this, param); }
 		public <T> T accept(VisitorR<T> visitor) { return visitor.visit(this); }
 		public <TRet, TParam> TRet accept(VisitorRP<TRet, TParam> visitor, TParam param) { return visitor.visit(this, param); }
 	}
@@ -146,10 +144,20 @@ public abstract class LambdaLabel
 			this.body = body;
 		}
 
+		public boolean isParenRequiredInAppLeft()
+		{
+			return true;
+		}
+
+		public boolean isParenRequiredInAppRight()
+		{
+			return true;
+		}
+
 		public boolean isAbstract() { return true; }
 		public boolean isAtomic() { return false; }
 
-		public <T> void accept(Visitor<T> visitor, T param) { visitor.visit(this, param); }
+		public <T> void accept(VisitorP<T> visitor, T param) { visitor.visit(this, param); }
 		public <T> T accept(VisitorR<T> visitor) { return visitor.visit(this); }
 		public <TRet, TParam> TRet accept(VisitorRP<TRet, TParam> visitor, TParam param) { return visitor.visit(this, param); }
 	}
@@ -163,10 +171,20 @@ public abstract class LambdaLabel
 			this.name = name;
 		}
 
+		public boolean isParenRequiredInAppLeft()
+		{
+			return false;
+		}
+
+		public boolean isParenRequiredInAppRight()
+		{
+			return false;
+		}
+
 		public boolean isAbstract() { return false; }
 		public boolean isAtomic() { return true; }
 
-		public <T> void accept(Visitor<T> visitor, T param) { visitor.visit(this, param); }
+		public <T> void accept(VisitorP<T> visitor, T param) { visitor.visit(this, param); }
 		public <T> T accept(VisitorR<T> visitor) { return visitor.visit(this); }
 		public <TRet, TParam> TRet accept(VisitorRP<TRet, TParam> visitor, TParam param) { return visitor.visit(this, param); }
 	}
@@ -182,10 +200,20 @@ public abstract class LambdaLabel
 			this.color = color;
 		}
 
-		public boolean isAbstract() { return false; }
-		public boolean isAtomic() { return false; }
+		public boolean isParenRequiredInAppLeft()
+		{
+			return lambda.isParenRequiredInAppLeft();
+		}
 
-		public <T> void accept(Visitor<T> visitor, T param) { visitor.visit(this, param); }
+		public boolean isParenRequiredInAppRight()
+		{
+			return lambda.isParenRequiredInAppRight();
+		}
+
+		public boolean isAbstract() { return false; }
+		public boolean isAtomic() { return lambda.isAtomic(); }
+
+		public <T> void accept(VisitorP<T> visitor, T param) { visitor.visit(this, param); }
 		public <T> T accept(VisitorR<T> visitor) { return visitor.visit(this); }
 		public <TRet, TParam> TRet accept(VisitorRP<TRet, TParam> visitor, TParam param) { return visitor.visit(this, param); }
 	}
