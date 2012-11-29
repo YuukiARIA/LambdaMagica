@@ -1,16 +1,18 @@
 package lambda;
 
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
+import lambda.ast.RedexFinder;
 
 public class LambdaInterpreter
 {
 	private LinkedList<Lambda> steps = new LinkedList<Lambda>();
 	private Lambda sourceLambda;
 	private Lambda lambda;
-	private boolean isNormal;
 	private boolean isCyclic;
 
 	public LambdaInterpreter(Lambda sourceLambda)
@@ -22,9 +24,9 @@ public class LambdaInterpreter
 	public void initialize()
 	{
 		lambda = sourceLambda;
-		isNormal = false;
 		isCyclic = false;
 		steps.clear();
+		push();
 	}
 
 	public boolean step(Environment env)
@@ -36,10 +38,10 @@ public class LambdaInterpreter
 	{
 		if (!isCyclic)
 		{
-			push();
 			Reducer.Result ret = Reducer.reduce(lambda, env, redex);
 			isCyclic = AlphaComparator.alphaEquiv(lambda, ret.lambda);
 			lambda = ret.lambda;
+			push();
 			return ret.reduced;
 		}
 		return false;
@@ -62,12 +64,13 @@ public class LambdaInterpreter
 
 	public boolean isNormal()
 	{
-		return isNormal;
+		boolean etaEnabled = Environment.getEnvironment().getBoolean(Environment.KEY_ETA_REDUCTION);
+		return RedexFinder.isNormalForm(lambda, etaEnabled);
 	}
 
 	public boolean isCyclic()
 	{
-		return !isNormal && isCyclic;
+		return !isNormal() && isCyclic;
 	}
 
 	public boolean isTerminated()
@@ -78,6 +81,11 @@ public class LambdaInterpreter
 	public Lambda getLambda()
 	{
 		return lambda;
+	}
+
+	public List<Lambda> getSteps()
+	{
+		return Collections.unmodifiableList(steps);
 	}
 
 	private void push()

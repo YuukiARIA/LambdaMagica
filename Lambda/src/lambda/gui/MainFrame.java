@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Iterator;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -35,6 +36,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 import lambda.Environment;
+import lambda.LaTeXStringBuilder;
 import lambda.LambdaInterpreter;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
@@ -65,6 +67,7 @@ public class MainFrame extends JFrame
 	private JCheckBox checkDataConv;
 	private JCheckBox checkAuto;
 	private JCheckBox checkTraceInAuto;
+	private JButton buttonLaTeX;
 	private JButton buttonStop;
 
 	private RedexView redexView;
@@ -165,6 +168,16 @@ public class MainFrame extends JFrame
 		pPrinting.add(checkDataConv);
 		buttonPanel.add(pPrinting);
 
+		buttonLaTeX = new JButton("generate LaTeX source");
+		buttonLaTeX.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				generateLaTeX();
+			}
+		});
+		buttonPanel.add(buttonLaTeX);
+
 		buttonStop = new JButton("stop");
 		buttonStop.setEnabled(false);
 		buttonStop.addActionListener(new ActionListener()
@@ -219,6 +232,7 @@ public class MainFrame extends JFrame
 			.addComponent(pAuto, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(pReduction, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(pPrinting, 0, DEF_SIZE, INF_SIZE)
+			.addComponent(buttonLaTeX, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(buttonStop, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(buttonClear, 0, DEF_SIZE, INF_SIZE)
 			.addComponent(buttonClearMacros, 0, DEF_SIZE, INF_SIZE)
@@ -227,6 +241,7 @@ public class MainFrame extends JFrame
 			.addComponent(pAuto)
 			.addComponent(pReduction)
 			.addComponent(pPrinting)
+			.addComponent(buttonLaTeX)
 			.addComponent(buttonStop)
 			.addComponent(buttonClear)
 			.addComponent(buttonClearMacros)
@@ -407,7 +422,7 @@ public class MainFrame extends JFrame
 
 	private boolean step()
 	{
-		if (interpreter == null)
+		if (interpreter == null || interpreter.isTerminated())
 		{
 			return false;
 		}
@@ -458,7 +473,7 @@ public class MainFrame extends JFrame
 
 	private void stepBackward()
 	{
-		if (!autoRunning && interpreter != null && interpreter.isRevertable())
+		if (!autoRunning && interpreter != null && !interpreter.isTerminated() && interpreter.isRevertable())
 		{
 			interpreter.revert();
 			deleteLine();
@@ -516,7 +531,6 @@ public class MainFrame extends JFrame
 	private void reductionTerminated()
 	{
 		buttonStop.setEnabled(false);
-		interpreter = null;
 	}
 
 	private void updateRedexView(Lambda lambda)
@@ -719,6 +733,39 @@ public class MainFrame extends JFrame
 				println("- :q         - quit interpreter.");
 			}
 		});
+	}
+
+	private void generateLaTeX()
+	{
+		if (interpreter != null)
+		{
+			StringBuilder buf = new StringBuilder();
+			LaTeXStringBuilder builder = new LaTeXStringBuilder();
+			buf.append("\\begin{eqnarray*}\n");
+			buildLaTeXString(buf, builder, interpreter.getSteps().iterator());
+			buf.append("\\end{eqnarray*}\n");
+
+			SimpleTextDialog dialog = new SimpleTextDialog();
+			dialog.setTextAreaFont(output.getFont());
+			dialog.setText(buf.toString());
+			dialog.setVisible(true);
+		}
+	}
+
+	private static void buildLaTeXString(StringBuilder sb, LaTeXStringBuilder builder, Iterator<Lambda> it)
+	{
+		Lambda l = it.next();
+		if (it.hasNext())
+		{
+			buildLaTeXString(sb, builder, it);
+			sb.append("& \\longrightarrow & ");
+		}
+		else
+		{
+			sb.append("&& ");
+		}
+		sb.append(builder.build(l));
+		sb.append(" \\\\\n");
 	}
 
 	private synchronized void println(String line)
