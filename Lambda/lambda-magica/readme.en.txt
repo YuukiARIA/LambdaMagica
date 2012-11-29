@@ -1,6 +1,6 @@
 ﻿
 
-                  Lambda * Magica      ver 3.70
+                  Lambda * Magica      ver 3.71
 
          Untyped Lambda Calculus Interpreter for Education
 
@@ -126,6 +126,11 @@
 
 
 4. Versions
+
+- ver 3.71 (November 29, 2012)
+  add step-backward
+  add LaTeX code translator
+  fix to change row height of macro table depending on font size
 
 - ver 3.70 (November 26, 2012)
   add eta-reduction

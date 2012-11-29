@@ -1,6 +1,6 @@
 ﻿
 
-                  Lambda * Magica      ver 3.70
+                  Lambda * Magica      ver 3.71
 
          Untyped Lambda Calculus Interpreter for Education
 
@@ -119,6 +119,11 @@
 
 
 4. バージョン情報
+
+- ver 3.71 (November 29, 2012)
+  ステップバックを追加
+  簡約手順の出力をLaTeXソースに変換する機能を追加
+  マクロ定義テーブルの行の高さがフォントサイズに合わせて変わるように修正
 
 - ver 3.70 (November 26, 2012)
   η-簡約を実装
