@@ -59,7 +59,7 @@ public class LambdaInterpreter
 
 	public int getStep()
 	{
-		return steps.size();
+		return steps.size() - 1;
 	}
 
 	public boolean isNormal()
