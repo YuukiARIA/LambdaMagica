@@ -100,6 +100,10 @@ public class MainFrame extends JFrame
 					inputField.setText("");
 					start(s);
 				}
+				else
+				{
+					step();
+				}
 			}
 		});
 		inputPanel.add(inputField, BorderLayout.CENTER);
@@ -276,6 +280,7 @@ public class MainFrame extends JFrame
 		String keyInc = "font.size.increase";
 		String keyDec = "font.size.decrease";
 		String keyDef = "font.size.default";
+		String keyRev = "revert";
 
 		InputMap imap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, mod), keyInc);
@@ -284,6 +289,7 @@ public class MainFrame extends JFrame
 		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, mod), keyDec);
 		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, mod), keyDec);
 		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_0, mod), keyDef);
+		imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.SHIFT_DOWN_MASK), keyRev);
 
 		ActionMap amap = getRootPane().getActionMap();
 		amap.put(keyInc, new AbstractAction()
@@ -319,6 +325,13 @@ public class MainFrame extends JFrame
 				Environment env = Environment.getEnvironment();
 				env.set(Environment.KEY_GUI_FONT_SIZE, 12);
 				setCodeFont(env.getGUIFont());
+			}
+		});
+		amap.put(keyRev, new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				stepBackward();
 			}
 		});
 	}
@@ -441,6 +454,16 @@ public class MainFrame extends JFrame
 			updateRedexView(lambda);
 		}
 		return success;
+	}
+
+	private void stepBackward()
+	{
+		if (!autoRunning && interpreter != null && interpreter.isRevertable())
+		{
+			interpreter.revert();
+			deleteLine();
+			updateRedexView(interpreter.getLambda());
+		}
 	}
 
 	private void showConvertedData(Lambda lambda)
@@ -709,6 +732,17 @@ public class MainFrame extends JFrame
 				output.setCaretPosition(output.getText().length());
 			}
 		});
+	}
+
+	private synchronized void deleteLine()
+	{
+		String text = output.getText().trim();
+		int i = text.lastIndexOf('\n');
+		if (i != -1)
+		{
+			text = text.substring(0, i + 1);
+			output.setText(text);
+		}
 	}
 
 	private class AutoRunningThread extends Thread
