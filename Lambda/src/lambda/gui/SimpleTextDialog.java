@@ -22,6 +22,7 @@ public class SimpleTextDialog extends JDialog
 	{
 		setTitle("Text");
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		setAlwaysOnTop(true);
 		setSize(400, 300);
 		setLocationRelativeTo(null);
 
