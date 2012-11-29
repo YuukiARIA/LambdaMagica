@@ -119,7 +119,9 @@ public class Main
 				{
 					break;
 				}
-				if (!interpreter.step(env, redex))
+
+				Reducer.Result result = interpreter.step(env, redex);
+				if (!result.reduced)
 				{
 					break;
 				}
@@ -130,16 +132,16 @@ public class Main
 					{
 						s = s.substring(0, 35) + " ... " + s.substring(s.length() - 35, s.length());
 					}
-					System.out.printf("%3d: ", interpreter.getStep());
+					System.out.printf("%3d: ", interpreter.getReductionStepCount());
 					System.out.println("--> " + s);
 				}
 
-				if (continueSteps > 0 && interpreter.getStep() % continueSteps == 0)
+				if (continueSteps > 0 && interpreter.getReductionStepCount() % continueSteps == 0)
 				{
 					char c;
 					do
 					{
-						System.out.printf("- (%d steps done) continue?(y/n): ", interpreter.getStep());
+						System.out.printf("- (%d steps done) continue?(y/n): ", interpreter.getReductionStepCount());
 						c = readChar();
 					}
 					while (c != 'y' && c != 'n');
@@ -147,6 +149,7 @@ public class Main
 					if (c != 'y')
 					{
 						interrupted = true;
+						interpreter.terminate();
 						break;
 					}
 				}

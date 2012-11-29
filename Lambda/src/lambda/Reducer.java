@@ -28,29 +28,37 @@ public class Reducer
 		}
 		visitor.env = env;
 		visitor.redex = redex;
-		return visitor.reduce(lambda, IDContext.createContext());
+		return visitor.reduce(lambda);
+	}
+
+	public static enum Detail
+	{
+		NONE, MACRO_EXPANSION, BETA_REDUCTION, ETA_REDUCTION
 	}
 
 	public static class Result
 	{
 		public final Lambda lambda;
+		public final Detail detail;
 		public final boolean reduced;
 
-		public Result(Lambda lambda, boolean reduced)
+		public Result(Lambda lambda, Detail detail, boolean reduced)
 		{
 			this.lambda = lambda;
+			this.detail = detail;
 			this.reduced = reduced;
 		}
 	}
 
-	private static class ReductionVisitor implements Lambda.VisitorRP<Result, IDContext>
+	private static class ReductionVisitor implements Lambda.VisitorRP<Lambda, IDContext>
 	{
 		private Environment env;
 		private IRedex redex;
+		private Detail detail = Detail.NONE;
 
-		public Result visit(ASTAbstract abs, IDContext context)
+		public Lambda visit(ASTAbstract abs, IDContext context)
 		{
-			if (isRedex(abs) && abs.e instanceof ASTApply)
+			if (abs == redex && abs.e instanceof ASTApply)
 			{
 				ASTApply app = (ASTApply)abs.e;
 				if (app.rexpr instanceof ASTLiteral)
@@ -60,70 +68,73 @@ public class Reducer
 					Set<String> fv = vc.getFreeVariables();
 					if (!fv.contains(x.name))
 					{
-						return new Result(app.lexpr, true);
+						detail = Detail.ETA_REDUCTION;
+						return app.lexpr;
 					}
 				}
 			}
 
 			IDContext nc = IDContext.deriveContext(context);
 			nc.addBoundedName(abs.name);
-			Result ret = reduce(abs.e, nc);
-			if (ret.reduced)
+			Lambda ret = reduce(abs.e, nc);
+			if (ret != abs.e)
 			{
-				return new Result(new ASTAbstract(abs.originalName, abs.name, ret.lambda), true);
+				return new ASTAbstract(abs.originalName, abs.name, ret);
 			}
-			return new Result(abs, false);
+			return abs;
 		}
 
-		public Result visit(ASTApply app, IDContext context)
+		public Lambda visit(ASTApply app, IDContext context)
 		{
-			if (isRedex(app) && app.lexpr.isAbstraction())
+			if (app == redex && app.lexpr.isAbstraction())
 			{
 				ASTAbstract abs = (ASTAbstract)app.lexpr;
-				return new Result(abs.apply(context, app.rexpr), true);
+				detail = Detail.BETA_REDUCTION;
+				return abs.apply(context, app.rexpr);
 			}
 
-			Result ret = reduce(app.lexpr, context);
-			if (ret.reduced)
+			Lambda ret = reduce(app.lexpr, context);
+			if (ret != app.lexpr)
 			{
-				return new Result(new ASTApply(ret.lambda, app.rexpr), true);
+				return new ASTApply(ret, app.rexpr);
 			}
 
 			ret = reduce(app.rexpr, context);
-			if (ret.reduced)
+			if (ret != app.rexpr)
 			{
-				return new Result(new ASTApply(app.lexpr, ret.lambda), true);
+				return new ASTApply(app.lexpr, ret);
 			}
-
-			return new Result(app, false);
+			return app;
 		}
 
-		public Result visit(ASTLiteral l, IDContext context)
+		public Lambda visit(ASTLiteral l, IDContext context)
 		{
-			return new Result(l, false);
+			return l;
 		}
 
-		public Result visit(ASTMacro m, IDContext context)
+		public Lambda visit(ASTMacro m, IDContext context)
 		{
-			if (isRedex(m))
+			if (m == redex)
 			{
 				Lambda l = env.expandMacro(m.name);
 				if (l != null)
 				{
-					return new Result(l, true);
+					detail = Detail.MACRO_EXPANSION;
+					return l;
 				}
 			}
-			return new Result(m, false);
+			return m;
 		}
 
-		private Result reduce(Lambda lambda, IDContext context)
+		public Result reduce(Lambda lambda)
+		{
+			Lambda ret = reduce(lambda, IDContext.createContext());
+			return new Result(ret, detail, ret != lambda);
+		}
+
+		private Lambda reduce(Lambda lambda, IDContext context)
 		{
 			return lambda.accept(this, context);
-		}
-
-		private boolean isRedex(IRedex r)
-		{
-			return redex == r;
 		}
 	}
 }

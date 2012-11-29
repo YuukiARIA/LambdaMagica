@@ -38,6 +38,7 @@ import javax.swing.SwingUtilities;
 import lambda.Environment;
 import lambda.LaTeXStringBuilder;
 import lambda.LambdaInterpreter;
+import lambda.Reducer;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
@@ -411,7 +412,7 @@ public class MainFrame extends JFrame
 		}
 	}
 
-	private boolean stepReduction()
+	private Reducer.Result stepReduction()
 	{
 		boolean eta = env.getBoolean(Environment.KEY_ETA_REDUCTION);
 		IRedex redex = redexView.getSelectedRedex();
@@ -430,18 +431,39 @@ public class MainFrame extends JFrame
 		}
 
 		boolean success = true;
-		boolean changed = stepReduction();
+		Reducer.Result result = stepReduction();
 		Lambda lambda = interpreter.getLambda();
-		if (changed)
+		if (result.reduced)
 		{
 			if (!autoRunning || env.getBoolean(Environment.KEY_TRACE))
 			{
 				StringBuilder sb = new StringBuilder();
-				sb.append("--> ");
+
 				if (env.getBoolean(Environment.KEY_PRINT_STEP))
 				{
-					sb.append(String.format("%3d: ", interpreter.getStep()));
+					if (result.detail == Reducer.Detail.MACRO_EXPANSION)
+					{
+						sb.append("  -: ");
+					}
+					else
+					{
+						sb.append(String.format("%3d: ", interpreter.getReductionStepCount()));
+					}
 				}
+
+				switch (result.detail)
+				{
+				case BETA_REDUCTION:
+					sb.append("--> ");
+					break;
+				case ETA_REDUCTION:
+					sb.append("--> ");
+					break;
+				case MACRO_EXPANSION:
+					sb.append("  = ");
+					break;
+				}
+
 				String s = lambda.toString();
 				if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
 				{

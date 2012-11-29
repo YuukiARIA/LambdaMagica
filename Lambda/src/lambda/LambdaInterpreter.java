@@ -13,6 +13,7 @@ public class LambdaInterpreter
 	private LinkedList<Lambda> steps = new LinkedList<Lambda>();
 	private Lambda sourceLambda;
 	private Lambda lambda;
+	private int stepCount;
 	private boolean isCyclic;
 	private boolean terminated;
 
@@ -27,26 +28,27 @@ public class LambdaInterpreter
 		lambda = sourceLambda;
 		isCyclic = false;
 		terminated = false;
+		stepCount = 0;
 		steps.clear();
 		push();
 	}
 
-	public boolean step(Environment env)
+	public Reducer.Result step(Environment env, IRedex redex)
 	{
-		return step(env, null);
-	}
+		Reducer.Result ret = Reducer.reduce(lambda, env, redex);
+		isCyclic = AlphaComparator.alphaEquiv(lambda, ret.lambda);
+		lambda = ret.lambda;
+		push();
 
-	public boolean step(Environment env, IRedex redex)
-	{
-		if (!isCyclic)
+		switch (ret.detail)
 		{
-			Reducer.Result ret = Reducer.reduce(lambda, env, redex);
-			isCyclic = AlphaComparator.alphaEquiv(lambda, ret.lambda);
-			lambda = ret.lambda;
-			push();
-			return ret.reduced;
+		case BETA_REDUCTION:
+		case ETA_REDUCTION:
+			stepCount++;
+			break;
 		}
-		return false;
+
+		return ret;
 	}
 
 	public void revert()
@@ -59,9 +61,9 @@ public class LambdaInterpreter
 		return !steps.isEmpty();
 	}
 
-	public int getStep()
+	public int getReductionStepCount()
 	{
-		return steps.size() - 1;
+		return stepCount;
 	}
 
 	public boolean isNormal()
