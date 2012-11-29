@@ -14,8 +14,9 @@ public class LambdaInterpreter
 	private Lambda sourceLambda;
 	private Lambda lambda;
 	private boolean isCyclic;
+	private boolean terminated;
 
-	public LambdaInterpreter(Lambda sourceLambda)
+	public void startInterpretation(Lambda sourceLambda)
 	{
 		this.sourceLambda = sourceLambda;
 		initialize();
@@ -25,6 +26,7 @@ public class LambdaInterpreter
 	{
 		lambda = sourceLambda;
 		isCyclic = false;
+		terminated = false;
 		steps.clear();
 		push();
 	}
@@ -75,7 +77,12 @@ public class LambdaInterpreter
 
 	public boolean isTerminated()
 	{
-		return isNormal() || isCyclic();
+		return terminated || isNormal() || isCyclic();
+	}
+
+	public void terminate()
+	{
+		terminated = true;
 	}
 
 	public Lambda getLambda()

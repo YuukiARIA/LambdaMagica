@@ -23,6 +23,7 @@ public class Main
 {
 	private static final Environment env = Environment.getEnvironment();
 	private static final CommandProcessor commands = new CommandProcessor();
+	private static final LambdaInterpreter interpreter = new LambdaInterpreter();
 
 	private static char readChar()
 	{
@@ -106,7 +107,7 @@ public class Main
 
 			System.out.println(lambda);
 
-			LambdaInterpreter interpreter = new LambdaInterpreter(lambda);
+			interpreter.startInterpretation(lambda);
 
 			int continueSteps = env.getInt(Environment.KEY_CONTINUE_STEPS, 500);
 			boolean interrupted = false;

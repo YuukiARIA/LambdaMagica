@@ -59,7 +59,6 @@ public class MainFrame extends JFrame
 
 	private LineEditor inputField;
 	private JButton buttonStep;
-	private JButton buttonClear;
 
 	private JCheckBox checkPrintStep;
 	private JCheckBox checkShort;
@@ -67,8 +66,10 @@ public class MainFrame extends JFrame
 	private JCheckBox checkDataConv;
 	private JCheckBox checkAuto;
 	private JCheckBox checkTraceInAuto;
+
 	private JButton buttonLaTeX;
 	private JButton buttonStop;
+	private JButton buttonClear;
 
 	private RedexView redexView;
 	private JTextArea output;
@@ -76,7 +77,7 @@ public class MainFrame extends JFrame
 
 	private Environment env = Environment.getEnvironment();
 	private final CommandProcessor commands = new CommandProcessor();
-	private LambdaInterpreter interpreter;
+	private final LambdaInterpreter interpreter = new LambdaInterpreter();
 
 	private boolean autoRunning;
 	private Thread thread;
@@ -186,6 +187,7 @@ public class MainFrame extends JFrame
 			{
 				if (thread != null)
 				{
+					interpreter.terminate();
 					autoRunning = false;
 					try
 					{
@@ -422,7 +424,7 @@ public class MainFrame extends JFrame
 
 	private boolean step()
 	{
-		if (interpreter == null || interpreter.isTerminated())
+		if (interpreter.isTerminated())
 		{
 			return false;
 		}
@@ -584,7 +586,7 @@ public class MainFrame extends JFrame
 
 			println(lambda.toString());
 
-			interpreter = new LambdaInterpreter(lambda);
+			interpreter.startInterpretation(lambda);
 
 			if (checkIfNormalForm())
 			{
@@ -737,19 +739,16 @@ public class MainFrame extends JFrame
 
 	private void generateLaTeX()
 	{
-		if (interpreter != null)
-		{
-			StringBuilder buf = new StringBuilder();
-			LaTeXStringBuilder builder = new LaTeXStringBuilder();
-			buf.append("\\begin{eqnarray*}\n");
-			buildLaTeXString(buf, builder, interpreter.getSteps().iterator());
-			buf.append("\\end{eqnarray*}\n");
+		StringBuilder buf = new StringBuilder();
+		LaTeXStringBuilder builder = new LaTeXStringBuilder();
+		buf.append("\\begin{eqnarray*}\n");
+		buildLaTeXString(buf, builder, interpreter.getSteps().iterator());
+		buf.append("\\end{eqnarray*}\n");
 
-			SimpleTextDialog dialog = new SimpleTextDialog();
-			dialog.setTextAreaFont(output.getFont());
-			dialog.setText(buf.toString());
-			dialog.setVisible(true);
-		}
+		SimpleTextDialog dialog = new SimpleTextDialog();
+		dialog.setTextAreaFont(output.getFont());
+		dialog.setText(buf.toString());
+		dialog.setVisible(true);
 	}
 
 	private static void buildLaTeXString(StringBuilder sb, LaTeXStringBuilder builder, Iterator<Lambda> it)
