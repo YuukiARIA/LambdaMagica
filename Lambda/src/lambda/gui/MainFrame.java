@@ -45,7 +45,7 @@ import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
 import lambda.gui.macroview.MacroDefinitionView;
-import lambda.reduction.Reducer;
+import lambda.reduction.Reducer.Result;
 import lambda.reduction.ReductionRule;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
@@ -108,7 +108,7 @@ public class MainFrame extends JFrame
 				}
 				else
 				{
-					step();
+					stepNormal();
 				}
 			}
 		});
@@ -129,7 +129,7 @@ public class MainFrame extends JFrame
 				}
 				else
 				{
-					step();
+					stepNormal();
 				}
 			}
 		});
@@ -187,22 +187,7 @@ public class MainFrame extends JFrame
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if (thread != null)
-				{
-					interpreter.terminate();
-					autoRunning = false;
-					try
-					{
-						thread.join();
-					}
-					catch (InterruptedException ex)
-					{
-						ex.printStackTrace();
-					}
-					println("- STOPPED.");
-					buttonStop.setEnabled(false);
-					thread = null;
-				}
+				stopAuto();
 			}
 		});
 		buttonPanel.add(buttonStop);
@@ -263,7 +248,7 @@ public class MainFrame extends JFrame
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				step();
+				stepNormal();
 			}
 		});
 		tabbedPane.add("Redex", new JScrollPane(redexView));
@@ -350,7 +335,10 @@ public class MainFrame extends JFrame
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				stepBackward();
+				if (!autoRunning)
+				{
+					stepBackward();
+				}
 			}
 		});
 	}
@@ -413,30 +401,36 @@ public class MainFrame extends JFrame
 		}
 	}
 
-	private Reducer.Result stepReduction()
+	private IRedex getDefaultRedex()
 	{
 		boolean eta = env.getBoolean(Environment.KEY_ETA_REDUCTION);
-		IRedex redex = redexView.getSelectedRedex();
-		if (redex == null)
-		{
-			redex = RedexFinder.getLeftMostOuterMostRedex(interpreter.getLambda(), eta);
-		}
-		return interpreter.step(env, redex);
+		return RedexFinder.getLeftMostOuterMostRedex(interpreter.getLambda(), eta);
 	}
 
-	private boolean step()
+	private IRedex getSelectedRedex()
+	{
+		IRedex redex = redexView.getSelectedRedex();
+		return redex != null ? redex : getDefaultRedex();
+	}
+
+	private boolean stepReduction(boolean auto)
 	{
 		if (interpreter.isTerminated())
 		{
 			return false;
 		}
 
-		boolean success = true;
-		Reducer.Result result = stepReduction();
-		Lambda lambda = interpreter.getLambda();
+		IRedex redex = auto ? getDefaultRedex() : getSelectedRedex();
+		if (redex == null)
+		{
+			return false;
+		}
+
+		boolean succeeded = true;
+		Result result = interpreter.step(env, redex);
 		if (result.reduced)
 		{
-			if (!autoRunning || env.getBoolean(Environment.KEY_TRACE))
+			if (!auto || env.getBoolean(Environment.KEY_TRACE))
 			{
 				StringBuilder sb = new StringBuilder();
 
@@ -465,7 +459,7 @@ public class MainFrame extends JFrame
 					break;
 				}
 
-				String s = lambda.toString();
+				String s = interpreter.getLambda().toString();
 				if (env.getBoolean(Environment.KEY_SHORT) && s.length() > 75)
 				{
 					sb.append(s.substring(0, 35));
@@ -481,19 +475,27 @@ public class MainFrame extends JFrame
 			if (checkIfCycled() || checkIfNormalForm())
 			{
 				reductionTerminated();
-				success = false;
+				succeeded = false;
 			}
 		}
 		else
 		{
 			reductionTerminated();
-			success = false;
+			succeeded = false;
 		}
-		if (!autoRunning)
-		{
-			updateRedexView(lambda);
-		}
-		return success;
+		return succeeded;
+	}
+
+	private boolean stepNormal()
+	{
+		boolean ret = stepReduction(false);
+		updateRedexView(interpreter.getLambda());
+		return ret;
+	}
+
+	private synchronized boolean stepAuto()
+	{
+		return stepReduction(true);
 	}
 
 	private void stepBackward()
@@ -635,8 +637,27 @@ public class MainFrame extends JFrame
 	{
 		autoRunning = true;
 		buttonStop.setEnabled(true);
+		buttonStep.setEnabled(false);
 		thread = new AutoRunningThread();
 		thread.start();
+	}
+
+	private void stopAuto()
+	{
+		if (thread != null)
+		{
+			interpreter.terminate();
+			autoRunning = false;
+			try
+			{
+				thread.join();
+			}
+			catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+			println("- STOPPED.");
+		}
 	}
 
 	private void loadFile(String path)
@@ -832,7 +853,7 @@ public class MainFrame extends JFrame
 			{
 				while (autoRunning)
 				{
-					if (!step())
+					if (!stepAuto())
 					{
 						break;
 					}
@@ -844,10 +865,16 @@ public class MainFrame extends JFrame
 			}
 			finally
 			{
-				buttonStop.setEnabled(false);
-				autoRunning = false;
-				thread = null;
+				finalizeAuto();
 			}
+		}
+
+		private void finalizeAuto()
+		{
+			autoRunning = false;
+			buttonStop.setEnabled(false);
+			buttonStep.setEnabled(true);
+			thread = null;
 		}
 	}
 }
