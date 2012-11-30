@@ -1,7 +1,8 @@
-package lambda;
+package lambda.reduction;
 
 import java.util.Set;
 
+import lambda.Environment;
 import lambda.ast.ASTAbstract;
 import lambda.ast.ASTApply;
 import lambda.ast.ASTLiteral;
@@ -31,21 +32,16 @@ public class Reducer
 		return visitor.reduce(lambda);
 	}
 
-	public static enum Detail
-	{
-		NONE, MACRO_EXPANSION, BETA_REDUCTION, ETA_REDUCTION
-	}
-
 	public static class Result
 	{
 		public final Lambda lambda;
-		public final Detail detail;
+		public final ReductionRule appliedRule;
 		public final boolean reduced;
 
-		public Result(Lambda lambda, Detail detail, boolean reduced)
+		public Result(Lambda lambda, ReductionRule appliedRule, boolean reduced)
 		{
 			this.lambda = lambda;
-			this.detail = detail;
+			this.appliedRule = appliedRule;
 			this.reduced = reduced;
 		}
 	}
@@ -54,7 +50,7 @@ public class Reducer
 	{
 		private Environment env;
 		private IRedex redex;
-		private Detail detail = Detail.NONE;
+		private ReductionRule appliedRule = ReductionRule.NONE;
 
 		public Lambda visit(ASTAbstract abs, IDContext context)
 		{
@@ -68,7 +64,7 @@ public class Reducer
 					Set<String> fv = vc.getFreeVariables();
 					if (!fv.contains(x.name))
 					{
-						detail = Detail.ETA_REDUCTION;
+						appliedRule = ReductionRule.ETA_REDUCTION;
 						return app.lexpr;
 					}
 				}
@@ -89,7 +85,7 @@ public class Reducer
 			if (app == redex && app.lexpr.isAbstraction())
 			{
 				ASTAbstract abs = (ASTAbstract)app.lexpr;
-				detail = Detail.BETA_REDUCTION;
+				appliedRule = ReductionRule.BETA_REDUCTION;
 				return abs.apply(context, app.rexpr);
 			}
 
@@ -119,7 +115,7 @@ public class Reducer
 				Lambda l = env.expandMacro(m.name);
 				if (l != null)
 				{
-					detail = Detail.MACRO_EXPANSION;
+					appliedRule = ReductionRule.MACRO_EXPANSION;
 					return l;
 				}
 			}
@@ -129,7 +125,7 @@ public class Reducer
 		public Result reduce(Lambda lambda)
 		{
 			Lambda ret = reduce(lambda, IDContext.createContext());
-			return new Result(ret, detail, ret != lambda);
+			return new Result(ret, appliedRule, ret != lambda);
 		}
 
 		private Lambda reduce(Lambda lambda, IDContext context)

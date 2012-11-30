@@ -7,13 +7,31 @@ import java.util.List;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.RedexFinder;
+import lambda.reduction.Reducer;
+import lambda.reduction.Reducer.Result;
+import lambda.reduction.ReductionRule;
 
 public class LambdaInterpreter
 {
-	private LinkedList<Lambda> steps = new LinkedList<Lambda>();
+	public static class State
+	{
+		public final int stepNumber;
+		public final Lambda lambda;
+		public final IRedex redex;
+		public final ReductionRule appliedRule;
+
+		public State(int stepNumber, Lambda lambda, IRedex redex, ReductionRule appliedRule)
+		{
+			this.stepNumber = stepNumber;
+			this.lambda = lambda;
+			this.redex = redex;
+			this.appliedRule = appliedRule;
+		}
+	}
+
+	private LinkedList<State> states = new LinkedList<State>();
+	private State currentState;
 	private Lambda sourceLambda;
-	private Lambda lambda;
-	private int stepCount;
 	private boolean isCyclic;
 	private boolean terminated;
 
@@ -25,30 +43,26 @@ public class LambdaInterpreter
 
 	public void initialize()
 	{
-		lambda = sourceLambda;
 		isCyclic = false;
 		terminated = false;
-		stepCount = 0;
-		steps.clear();
-		push();
+		states.clear();
+		pushState(new State(0, sourceLambda, null, ReductionRule.NONE));
 	}
 
-	public Reducer.Result step(Environment env, IRedex redex)
+	public Result step(Environment env, IRedex redex)
 	{
-		Reducer.Result ret = Reducer.reduce(lambda, env, redex);
-		isCyclic = AlphaComparator.alphaEquiv(lambda, ret.lambda);
-		lambda = ret.lambda;
-		push();
+		Result result = Reducer.reduce(getLambda(), env, redex);
+		isCyclic = AlphaComparator.alphaEquiv(getLambda(), result.lambda);
+		ReductionRule rule = result.appliedRule;
 
-		switch (ret.detail)
+		int stepNumber = currentState.stepNumber;
+		if (rule == ReductionRule.BETA_REDUCTION || rule == ReductionRule.ETA_REDUCTION)
 		{
-		case BETA_REDUCTION:
-		case ETA_REDUCTION:
-			stepCount++;
-			break;
+			stepNumber++;
 		}
+		pushState(new State(stepNumber, result.lambda, redex, rule));
 
-		return ret;
+		return result;
 	}
 
 	public void revert()
@@ -58,18 +72,23 @@ public class LambdaInterpreter
 
 	public boolean isRevertable()
 	{
-		return !steps.isEmpty();
+		return states.size() > 1;
+	}
+
+	public Lambda getSourceLambda()
+	{
+		return sourceLambda;
 	}
 
 	public int getReductionStepCount()
 	{
-		return stepCount;
+		return currentState.stepNumber;
 	}
 
 	public boolean isNormal()
 	{
 		boolean etaEnabled = Environment.getEnvironment().getBoolean(Environment.KEY_ETA_REDUCTION);
-		return RedexFinder.isNormalForm(lambda, etaEnabled);
+		return RedexFinder.isNormalForm(getLambda(), etaEnabled);
 	}
 
 	public boolean isCyclic()
@@ -89,24 +108,26 @@ public class LambdaInterpreter
 
 	public Lambda getLambda()
 	{
-		return lambda;
+		return currentState.lambda;
 	}
 
-	public List<Lambda> getSteps()
+	public List<State> getStates()
 	{
-		return Collections.unmodifiableList(steps);
+		return Collections.unmodifiableList(states);
 	}
 
-	private void push()
+	private void pushState(State s)
 	{
-		steps.push(lambda);
+		states.addLast(s);
+		currentState = s;
 	}
 
 	private void pop()
 	{
-		if (!steps.isEmpty())
+		if (isRevertable())
 		{
-			lambda = steps.pop();
+			states.removeLast();
+			currentState = states.getLast();
 		}
 	}
 }
