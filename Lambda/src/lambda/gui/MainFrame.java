@@ -15,6 +15,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -378,7 +380,13 @@ public class MainFrame extends JFrame
 			}
 			else
 			{
-				commands.invokeCommand(text);
+				String[] a = text.split("\\s+");
+				String cmd = a[0];
+				String[] params = Arrays.copyOfRange(a, 1, a.length);
+				if (!commands.invokeCommand(cmd, params))
+				{
+					println("- unknown command " + cmd);
+				}
 			}
 		}
 		else if (!text.isEmpty())

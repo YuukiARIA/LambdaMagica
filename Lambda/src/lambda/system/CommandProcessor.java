@@ -28,4 +28,15 @@ public class CommandProcessor
 			System.out.println("- unknown command " + cmd);
 		}
 	}
+
+	public boolean invokeCommand(String cmd, String ... params)
+	{
+		CommandDelegate l = delegates.get(cmd);
+		if (l != null)
+		{
+			l.commandInvoked(params);
+			return true;
+		}
+		return false;
+	}
 }
