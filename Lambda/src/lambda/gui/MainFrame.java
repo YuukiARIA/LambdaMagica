@@ -15,7 +15,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Iterator;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -38,7 +37,7 @@ import javax.swing.SwingUtilities;
 import lambda.Environment;
 import lambda.LaTeXStringBuilder;
 import lambda.LambdaInterpreter;
-import lambda.Reducer;
+import lambda.LambdaInterpreter.State;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
@@ -46,6 +45,8 @@ import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
 import lambda.gui.macroview.MacroDefinitionView;
+import lambda.reduction.Reducer;
+import lambda.reduction.ReductionRule;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
 import util.nullable.NullableBool;
@@ -441,7 +442,7 @@ public class MainFrame extends JFrame
 
 				if (env.getBoolean(Environment.KEY_PRINT_STEP))
 				{
-					if (result.detail == Reducer.Detail.MACRO_EXPANSION)
+					if (result.appliedRule == ReductionRule.MACRO_EXPANSION)
 					{
 						sb.append("  -: ");
 					}
@@ -451,16 +452,16 @@ public class MainFrame extends JFrame
 					}
 				}
 
-				switch (result.detail)
+				switch (result.appliedRule)
 				{
 				case BETA_REDUCTION:
-					sb.append("--> ");
+					sb.append("β --> ");
 					break;
 				case ETA_REDUCTION:
-					sb.append("--> ");
+					sb.append("η --> ");
 					break;
 				case MACRO_EXPANSION:
-					sb.append("  = ");
+					sb.append("    = ");
 					break;
 				}
 
@@ -497,7 +498,7 @@ public class MainFrame extends JFrame
 
 	private void stepBackward()
 	{
-		if (!autoRunning && interpreter != null && !interpreter.isTerminated() && interpreter.isRevertable())
+		if (!autoRunning && !interpreter.isTerminated() && interpreter.isRevertable())
 		{
 			interpreter.revert();
 			deleteLine();
@@ -763,30 +764,38 @@ public class MainFrame extends JFrame
 	{
 		StringBuilder buf = new StringBuilder();
 		LaTeXStringBuilder builder = new LaTeXStringBuilder();
+
 		buf.append("\\begin{eqnarray*}\n");
-		buildLaTeXString(buf, builder, interpreter.getSteps().iterator());
+
+		IRedex redex = null;
+		for (State s : interpreter.getStates())
+		{
+			switch (s.appliedRule)
+			{
+			case NONE:
+				buf.append("&& ");
+				break;
+			case BETA_REDUCTION:
+				buf.append("& \\longrightarrow_\\beta & ");
+				break;
+			case ETA_REDUCTION:
+				buf.append("& \\longrightarrow_\\eta & ");
+				break;
+			case MACRO_EXPANSION:
+				buf.append("& = & ");
+				break;
+			}
+			buf.append(builder.build(s.lambda));
+			buf.append(" \\\\\n");
+			redex = s.redex;
+		}
+
 		buf.append("\\end{eqnarray*}\n");
 
 		SimpleTextDialog dialog = new SimpleTextDialog();
 		dialog.setTextAreaFont(output.getFont());
 		dialog.setText(buf.toString());
 		dialog.setVisible(true);
-	}
-
-	private static void buildLaTeXString(StringBuilder sb, LaTeXStringBuilder builder, Iterator<Lambda> it)
-	{
-		Lambda l = it.next();
-		if (it.hasNext())
-		{
-			buildLaTeXString(sb, builder, it);
-			sb.append("& \\longrightarrow & ");
-		}
-		else
-		{
-			sb.append("&& ");
-		}
-		sb.append(builder.build(l));
-		sb.append(" \\\\\n");
 	}
 
 	private synchronized void println(String line)

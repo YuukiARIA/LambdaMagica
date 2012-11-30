@@ -14,6 +14,7 @@ import lambda.ast.MacroExpander;
 import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
+import lambda.reduction.Reducer;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
 import util.nullable.NullableBool;

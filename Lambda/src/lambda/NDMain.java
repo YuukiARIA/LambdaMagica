@@ -19,6 +19,7 @@ import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
 import lambda.gui.GraphNode;
 import lambda.gui.StateFrame;
+import lambda.reduction.Reducer;
 import lambda.serialize.LambdaSerializer;
 
 class LambdaNode
