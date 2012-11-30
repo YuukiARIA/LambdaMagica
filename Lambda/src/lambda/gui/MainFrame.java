@@ -766,8 +766,6 @@ public class MainFrame extends JFrame
 		LaTeXStringBuilder builder = new LaTeXStringBuilder();
 
 		buf.append("\\begin{eqnarray*}\n");
-
-		IRedex redex = null;
 		for (State s : interpreter.getStates())
 		{
 			switch (s.appliedRule)
@@ -776,20 +774,18 @@ public class MainFrame extends JFrame
 				buf.append("&& ");
 				break;
 			case BETA_REDUCTION:
-				buf.append("& \\longrightarrow_\\beta & ");
+				buf.append("&\\longrightarrow_\\beta& ");
 				break;
 			case ETA_REDUCTION:
-				buf.append("& \\longrightarrow_\\eta & ");
+				buf.append("&\\longrightarrow_\\eta& ");
 				break;
 			case MACRO_EXPANSION:
-				buf.append("& = & ");
+				buf.append("&=& ");
 				break;
 			}
-			buf.append(builder.build(s.lambda));
+			buf.append(builder.build(s.lambda, s.getReducedRedex()));
 			buf.append(" \\\\\n");
-			redex = s.redex;
 		}
-
 		buf.append("\\end{eqnarray*}\n");
 
 		SimpleTextDialog dialog = new SimpleTextDialog();

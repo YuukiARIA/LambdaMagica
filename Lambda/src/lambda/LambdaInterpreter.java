@@ -17,15 +17,20 @@ public class LambdaInterpreter
 	{
 		public final int stepNumber;
 		public final Lambda lambda;
-		public final IRedex redex;
 		public final ReductionRule appliedRule;
 
-		public State(int stepNumber, Lambda lambda, IRedex redex, ReductionRule appliedRule)
+		private IRedex redex;
+
+		public State(int stepNumber, Lambda lambda, ReductionRule appliedRule)
 		{
 			this.stepNumber = stepNumber;
 			this.lambda = lambda;
-			this.redex = redex;
 			this.appliedRule = appliedRule;
+		}
+
+		public IRedex getReducedRedex()
+		{
+			return redex;
 		}
 	}
 
@@ -46,7 +51,7 @@ public class LambdaInterpreter
 		isCyclic = false;
 		terminated = false;
 		states.clear();
-		pushState(new State(0, sourceLambda, null, ReductionRule.NONE));
+		pushState(new State(0, sourceLambda, ReductionRule.NONE));
 	}
 
 	public Result step(Environment env, IRedex redex)
@@ -60,7 +65,8 @@ public class LambdaInterpreter
 		{
 			stepNumber++;
 		}
-		pushState(new State(stepNumber, result.lambda, redex, rule));
+		currentState.redex = redex;
+		pushState(new State(stepNumber, result.lambda, rule));
 
 		return result;
 	}
