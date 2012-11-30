@@ -16,7 +16,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -374,19 +373,12 @@ public class MainFrame extends JFrame
 		text = text.trim();
 		if (text.startsWith(":"))
 		{
-			if (text.startsWith(":q"))
+			String[] a = text.split("\\s+");
+			String cmd = a[0];
+			String[] params = Arrays.copyOfRange(a, 1, a.length);
+			if (!commands.invokeCommand(cmd, params))
 			{
-				dispose();
-			}
-			else
-			{
-				String[] a = text.split("\\s+");
-				String cmd = a[0];
-				String[] params = Arrays.copyOfRange(a, 1, a.length);
-				if (!commands.invokeCommand(cmd, params))
-				{
-					println("- unknown command " + cmd);
-				}
+				println("- unknown command " + cmd);
 			}
 		}
 		else if (!text.isEmpty())
@@ -711,6 +703,13 @@ public class MainFrame extends JFrame
 
 	private void initializeCommands()
 	{
+		commands.add(":q", new CommandDelegate()
+		{
+			public void commandInvoked(String[] params)
+			{
+				dispose();
+			}
+		});
 		commands.add(":l", new CommandDelegate()
 		{
 			public void commandInvoked(String[] params)
