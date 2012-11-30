@@ -81,11 +81,6 @@ public class LambdaInterpreter
 		return states.size() > 1;
 	}
 
-	public Lambda getSourceLambda()
-	{
-		return sourceLambda;
-	}
-
 	public int getReductionStepCount()
 	{
 		return currentState.stepNumber;
