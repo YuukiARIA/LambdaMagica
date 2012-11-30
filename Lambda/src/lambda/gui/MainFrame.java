@@ -574,8 +574,7 @@ public class MainFrame extends JFrame
 			Lambda lambda = Lambda.parse(expr);
 			env.defineMacro(name, lambda);
 			macroView.addMacro(name, lambda);
-			String s = String.format("- <%s> is defined as %s", name, lambda);
-			println(s);
+			println(String.format("- <%s> is defined as %s", name, lambda));
 		}
 		catch (ParserException e)
 		{
@@ -777,10 +776,9 @@ public class MainFrame extends JFrame
 			public void commandInvoked(String[] params)
 			{
 				println("- :?         - show this help.");
-				println("- :f <expr>  - expand macros and show expression.");
+				println("- :f <expr>  - expand all macros and show expression.");
 				println("- :l <path>  - load lines from a text file.");
-				println("- :s <n>     - set the number of continuation steps.");
-				println("- :t [on]    - set trace mode. ");
+				//println("- :s <n>     - set the number of continuation steps.");
 				println("- :c         - clear all macros.");
 				println("- :pwd       - print working directory.");
 				println("- :q         - quit interpreter.");
