@@ -3,6 +3,7 @@ package lambda;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -17,10 +18,11 @@ import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
-import lambda.gui.GraphNode;
-import lambda.gui.StateFrame;
 import lambda.reduction.Reducer;
+import lambda.reduction.Reducer.Result;
 import lambda.serialize.LambdaSerializer;
+import lambda.stategraph.gui.GraphNode;
+import lambda.stategraph.gui.StateFrame;
 
 class LambdaNode
 {
@@ -28,6 +30,7 @@ class LambdaNode
 	public final Lambda lambda;
 	public boolean normal;
 	private short[] data;
+	private List<IRedex> redexes;
 
 	public LambdaNode(int depth, Lambda lambda)
 	{
@@ -35,6 +38,11 @@ class LambdaNode
 		this.lambda = lambda;
 		if (lambda != null) data = LambdaSerializer.serialize(lambda);
 		else data = new short[] { 0x7FFD };
+
+		if (lambda != null)
+		{
+			redexes = RedexFinder.getRedexList(lambda);
+		}
 	}
 
 	public short[] getData()
@@ -42,9 +50,14 @@ class LambdaNode
 		return data;
 	}
 
+	public List<IRedex> getRedexes()
+	{
+		return Collections.unmodifiableList(redexes);
+	}
+
 	public int hashCode()
 	{
-		return (31 * data.length) ^ data[0] ^ data[data.length - 1];
+		return (31 * data.length) ^ data[0] ^ data[data.length >> 1];
 	}
 
 	private boolean equals(LambdaNode n)
@@ -134,7 +147,96 @@ public class NDMain
 		}
 		System.out.println("states = " + states.size());
 	}
-	//(\xy.y)(\f.(\x.f(xx))(\x.f(xx)))stop
+
+	private static void searchOnLine(Lambda lambda, int maxDepth)
+	{
+		StateFrame f = new StateFrame();
+		f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		f.setVisible(true);
+
+		Environment env = Environment.getEnvironment();
+		Map<LambdaNode, GraphNode> gns = new HashMap<LambdaNode, GraphNode>();
+
+		Queue<LambdaNode> queue = new LinkedList<LambdaNode>();
+		LambdaNode initial = new LambdaNode(0, lambda);
+		queue.add(initial);
+		while (!queue.isEmpty())
+		{
+			LambdaNode p = queue.poll();
+
+			if (states.contains(p))
+			{
+				continue;
+			}
+			states.add(p);
+
+			if (!gns.containsKey(p))
+			{
+				String label = p.lambda.toString().replace("\\", "λ");
+				GraphNode gn = new GraphNode(label);
+				f.addNode(gn);
+				gns.put(p, gn);
+			}
+
+			if (p.depth == 0)
+			{
+				f.setInitialNode(gns.get(p));
+			}
+
+			List<IRedex> redexes = p.getRedexes();
+			if (redexes.isEmpty())
+			{
+				p.normal = true;
+				gns.get(p).setAccept(true);
+			}
+
+			for (IRedex redex : redexes)
+			{
+				Result ret = Reducer.reduce(p.lambda, env, redex);
+				LambdaNode p2 = new LambdaNode(p.depth + 1, ret.lambda);
+				if (p.depth + 1 <= maxDepth)
+				{
+					if (!gns.containsKey(p2))
+					{
+						String label = p2.lambda.toString().replace("\\", "λ");
+						GraphNode gn = new GraphNode(label);
+						if (p2.getRedexes().isEmpty())
+						{
+							p2.normal = true;
+							gn.setAccept(true);
+						}
+						f.addNode(gn);
+						gns.put(p2, gn);
+					}
+					queue.add(p2);
+				}
+				else
+				{
+					if (NODE_INF == null)
+					{
+						NODE_INF = new LambdaNode(0, null);
+						states.add(NODE_INF);
+						GraphNode gn = new GraphNode("∞");
+						f.addNode(gn);
+						gns.put(NODE_INF, gn);
+					}
+					p2 = NODE_INF;
+				}
+				addEdge(p, p2);
+				f.addEdge(gns.get(p), gns.get(p2));
+			}
+			f.repaint();
+			try
+			{
+				Thread.sleep(500);
+			}
+			catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		System.out.println("states = " + states.size());
+	}
 
 	private static void outputGraph()
 	{
@@ -210,7 +312,7 @@ public class NDMain
 				gn.setAccept(true);
 			}
 			
-			if (node.depth == 0)
+			if (node != NODE_INF && node.depth == 0)
 			{
 				f.setInitialNode(gn);
 			}
@@ -232,11 +334,12 @@ public class NDMain
 		f.setVisible(true);
 	}
 
+	// (\tf.f)(\f.(\x.f(xx))(\x.f(xx)))stop
+	// (\xy.x(\tf.t)y)(\tf.t)((\p.p(\tf.f)(\tf.t))((\xy.xy(\tf.f))(\tf.t)(\tf.f)))
 	public static void main(String[] args)
 	{
 		System.out.println("ND mode");
 
-		LaTeXStringBuilder builder = new LaTeXStringBuilder();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 		String line;
 		try
@@ -246,9 +349,8 @@ public class NDMain
 				try
 				{
 					Lambda lambda = Lambda.parse(line);
-					System.out.println(builder.build(lambda));
 					//System.out.println("input = " + lambda);
-					//search(lambda, 20);
+					searchOnLine(lambda, 100);
 					//outputGraphFrame();
 					//outputGraph();
 				}
