@@ -166,7 +166,7 @@ class GraphPanel extends JPanel
 			for (GraphNode n : nodes)
 			{
 				int nx = n.getX(), ny = n.getY();
-				if ((nx - x) * (nx - x) + (ny - y) * (ny - y) <= 10 * 10)
+				if ((nx - x) * (nx - x) + (ny - y) * (ny - y) <= GraphNode.R * GraphNode.R)
 				{
 					h = n;
 					break;
@@ -296,6 +296,8 @@ class GraphPanel extends JPanel
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.setStroke(LINE_STROKE);
 
+		GraphNode hn = getHoverNode();
+
 		List<Object[]> dedges = new ArrayList<Object[]>();
 		synchronized (edges)
 		{
@@ -306,12 +308,12 @@ class GraphPanel extends JPanel
 				for (GraphNode sink : e.getValue())
 				{
 					Point p2 = new Point(sink.getX(), sink.getY());
-					if (src == hoverNode)
+					if (src == hn)
 					{
 						dedges.add(new Object[] { p1, p2, Color.BLUE });
 						continue;
 					}
-					else if (sink == hoverNode)
+					else if (sink == hn)
 					{
 						dedges.add(new Object[] { p1, p2, Color.RED });
 						continue;
@@ -339,7 +341,6 @@ class GraphPanel extends JPanel
 			drawCurveEdge(g, p1.x, p1.y, p2.x, p2.y);
 		}
 
-		GraphNode hn = getHoverNode();
 		if (hn != null && hn.getLabel() != null)
 		{
 			g.setColor(new Color(255, 255, 255, 220));
