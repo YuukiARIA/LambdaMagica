@@ -29,6 +29,8 @@ public class NDMain
 {
 	private static Set<IStateNode> states = new HashSet<IStateNode>();
 	private static Map<LambdaNode, Set<IStateNode>> edges = new HashMap<LambdaNode, Set<IStateNode>>();
+	private static Map<IStateNode, GraphNode> nodeMapping = new HashMap<IStateNode, GraphNode>();
+	private static boolean createdNew;
 
 	private static void addEdge(LambdaNode src, IStateNode dest)
 	{
@@ -39,6 +41,23 @@ public class NDMain
 			edges.put(src, dests);
 		}
 		dests.add(dest);
+	}
+
+	private static GraphNode addGraphNode(StateFrame f, IStateNode node)
+	{
+		GraphNode gn = nodeMapping.get(node);
+		if (gn == null)
+		{
+			gn = new GraphNode(node.getText());
+			nodeMapping.put(node, gn);
+			f.addNode(gn);
+			createdNew = true;
+		}
+		else
+		{
+			createdNew = false;
+		}
+		return gn;
 	}
 
 	private static void search(Lambda lambda, int maxDepth)
@@ -84,77 +103,62 @@ public class NDMain
 		f.setVisible(true);
 
 		Environment env = Environment.getEnvironment();
-		Map<IStateNode, GraphNode> gns = new HashMap<IStateNode, GraphNode>();
+
+		nodeMapping.clear();
 
 		Queue<LambdaNode> queue = new LinkedList<LambdaNode>();
 		LambdaNode initial = new LambdaNode(0, lambda);
-		{
-			GraphNode gn = new GraphNode(initial.getText());
-			f.addNode(gn);
-			gns.put(initial, gn);
-			f.setInitialNode(gn);
-		}
+		GraphNode gnInitial = addGraphNode(f, initial);
+		f.setInitialNode(gnInitial);
 		queue.add(initial);
 		while (!queue.isEmpty())
 		{
-			LambdaNode p = queue.poll();
+			LambdaNode p1 = queue.poll();
 
-			if (states.contains(p))
+			if (states.contains(p1))
 			{
 				continue;
 			}
-			states.add(p);
+			states.add(p1);
 
-			if (!gns.containsKey(p))
-			{
-				GraphNode gn = new GraphNode(p.getText());
-				f.addNode(gn);
-				gns.put(p, gn);
-			}
+			GraphNode gn1 = addGraphNode(f, p1);
 
-			List<IRedex> redexes = p.getRedexes();
+			List<IRedex> redexes = p1.getRedexes();
 			if (redexes.isEmpty())
 			{
-				gns.get(p).setAccept(true);
+				gn1.setAccept(true);
 			}
 
 			for (IRedex redex : redexes)
 			{
-				Result ret = Reducer.reduce(p.lambda, env, redex);
+				Result ret = Reducer.reduce(p1.lambda, env, redex);
 
-				LambdaNode lambdaNode = new LambdaNode(p.depth + 1, ret.lambda);
-				IStateNode p2 = lambdaNode;
+				LambdaNode lambdaNode = new LambdaNode(p1.depth + 1, ret.lambda);
+				GraphNode gn2;
 				if (lambdaNode.depth <= maxDepth || states.contains(lambdaNode))
 				{
-					if (!gns.containsKey(lambdaNode))
+					gn2 = addGraphNode(f, lambdaNode);
+					if (lambdaNode.getRedexes().isEmpty())
 					{
-						GraphNode gn = new GraphNode(lambdaNode.getText());
-						if (lambdaNode.getRedexes().isEmpty())
-						{
-							gn.setAccept(true);
-						}
-						f.addNode(gn);
-						gns.put(lambdaNode, gn);
+						gn2.setAccept(true);
+					}
+					if (createdNew)
+					{
+						gn2.setLocation(gn1.getX(), gn1.getY());
+						gn2.setDestination(gn1.getX(), gn1.getY());
 					}
 					queue.add(lambdaNode);
-					p2 = lambdaNode;
 				}
 				else
 				{
 					InfinityNode infNode = InfinityNode.getInstance();
-					if (!gns.containsKey(infNode))
-					{
-						GraphNode gn = new GraphNode(infNode.getText());
-						f.addNode(gn);
-						gns.put(infNode, gn);
-					}
-					p2 = infNode;
+					gn2 = addGraphNode(f, infNode);
 				}
-				f.addEdge(gns.get(p), gns.get(p2));
+				f.addEdge(gn1, gn2);
 			}
 			try
 			{
-				Thread.sleep(10);
+				Thread.sleep(50);
 			}
 			catch (InterruptedException e)
 			{
