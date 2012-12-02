@@ -148,6 +148,7 @@ class GraphPanel extends JPanel
 		{
 			nodes.add(node);
 			node.setLocation(getWidth() / 2, getHeight() / 2);
+			node.setDestination(getWidth() / 2, getHeight() / 2);
 			structureChanged = true;
 		}
 	}

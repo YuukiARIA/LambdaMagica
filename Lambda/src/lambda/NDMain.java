@@ -3,7 +3,6 @@ package lambda;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -20,79 +19,23 @@ import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
 import lambda.reduction.Reducer;
 import lambda.reduction.Reducer.Result;
-import lambda.serialize.LambdaSerializer;
+import lambda.stategraph.IStateNode;
+import lambda.stategraph.InfinityNode;
+import lambda.stategraph.LambdaNode;
 import lambda.stategraph.gui.GraphNode;
 import lambda.stategraph.gui.StateFrame;
 
-class LambdaNode
-{
-	public final int depth;
-	public final Lambda lambda;
-	public boolean normal;
-	private short[] data;
-	private List<IRedex> redexes;
-
-	public LambdaNode(int depth, Lambda lambda)
-	{
-		this.depth = depth;
-		this.lambda = lambda;
-		if (lambda != null) data = LambdaSerializer.serialize(lambda);
-		else data = new short[] { 0x7FFD };
-
-		if (lambda != null)
-		{
-			redexes = RedexFinder.getRedexList(lambda);
-		}
-	}
-
-	public short[] getData()
-	{
-		return data;
-	}
-
-	public List<IRedex> getRedexes()
-	{
-		return Collections.unmodifiableList(redexes);
-	}
-
-	public int hashCode()
-	{
-		return (31 * data.length) ^ data[0] ^ data[data.length >> 1];
-	}
-
-	private boolean equals(LambdaNode n)
-	{
-		if (data.length != n.data.length) return false;
-		for (int i = 0; i < data.length; i++)
-		{
-			if (data[i] != n.data[i]) return false;
-		}
-		return true;
-	}
-
-	public boolean equals(Object o)
-	{
-		return o == this || o instanceof LambdaNode && equals((LambdaNode)o);
-	}
-
-	public String toString()
-	{
-		return lambda.toString();
-	}
-}
-
 public class NDMain
 {
-	private static LambdaNode NODE_INF;
-	private static Set<LambdaNode> states = new HashSet<LambdaNode>();
-	private static Map<LambdaNode, Set<LambdaNode>> edges = new HashMap<LambdaNode, Set<LambdaNode>>();
+	private static Set<IStateNode> states = new HashSet<IStateNode>();
+	private static Map<LambdaNode, Set<IStateNode>> edges = new HashMap<LambdaNode, Set<IStateNode>>();
 
-	private static void addEdge(LambdaNode src, LambdaNode dest)
+	private static void addEdge(LambdaNode src, IStateNode dest)
 	{
-		Set<LambdaNode> dests = edges.get(src);
+		Set<IStateNode> dests = edges.get(src);
 		if (dests == null)
 		{
-			dests = new HashSet<LambdaNode>();
+			dests = new HashSet<IStateNode>();
 			edges.put(src, dests);
 		}
 		dests.add(dest);
@@ -107,7 +50,6 @@ public class NDMain
 		while (!queue.isEmpty())
 		{
 			LambdaNode p = queue.poll();
-			Lambda l = p.lambda;
 
 			if (states.contains(p))
 			{
@@ -115,33 +57,20 @@ public class NDMain
 			}
 			states.add(p);
 
-			List<IRedex> redexes = RedexFinder.getRedexList(l);
-			if (redexes.isEmpty())
+			List<IRedex> redexes = RedexFinder.getRedexList(p.lambda);
+			for (IRedex redex : redexes)
 			{
-				p.normal = true;
-			}
-			else
-			{
-				for (IRedex redex : redexes)
+				Reducer.Result ret = Reducer.reduce(p.lambda, env, redex);
+				LambdaNode p2 = new LambdaNode(p.depth + 1, ret.lambda);
+				if (p.depth + 1 <= maxDepth || states.contains(p2))
 				{
-					Reducer.Result ret = Reducer.reduce(l, env, redex);
-					LambdaNode p2 = new LambdaNode(p.depth + 1, ret.lambda);
-					if (p.depth + 1 <= maxDepth || states.contains(p2))
-					{
-						addEdge(p, p2);
-						queue.add(p2);
-					}
-					else
-					{
-						if (NODE_INF == null)
-						{
-							NODE_INF = new LambdaNode(0, null);
-							states.add(NODE_INF);
-						}
-						addEdge(p, NODE_INF);
-						System.out.println("limit");
-						continue;
-					}
+					addEdge(p, p2);
+					queue.add(p2);
+				}
+				else
+				{
+					addEdge(p, InfinityNode.getInstance());
+					continue;
 				}
 			}
 		}
@@ -155,10 +84,16 @@ public class NDMain
 		f.setVisible(true);
 
 		Environment env = Environment.getEnvironment();
-		Map<LambdaNode, GraphNode> gns = new HashMap<LambdaNode, GraphNode>();
+		Map<IStateNode, GraphNode> gns = new HashMap<IStateNode, GraphNode>();
 
 		Queue<LambdaNode> queue = new LinkedList<LambdaNode>();
 		LambdaNode initial = new LambdaNode(0, lambda);
+		{
+			GraphNode gn = new GraphNode(initial.getText());
+			f.addNode(gn);
+			gns.put(initial, gn);
+			f.setInitialNode(gn);
+		}
 		queue.add(initial);
 		while (!queue.isEmpty())
 		{
@@ -172,60 +107,51 @@ public class NDMain
 
 			if (!gns.containsKey(p))
 			{
-				String label = p.lambda.toString().replace("\\", "λ");
-				GraphNode gn = new GraphNode(label);
+				GraphNode gn = new GraphNode(p.getText());
 				f.addNode(gn);
 				gns.put(p, gn);
-			}
-
-			if (p.depth == 0)
-			{
-				f.setInitialNode(gns.get(p));
 			}
 
 			List<IRedex> redexes = p.getRedexes();
 			if (redexes.isEmpty())
 			{
-				p.normal = true;
 				gns.get(p).setAccept(true);
 			}
 
 			for (IRedex redex : redexes)
 			{
 				Result ret = Reducer.reduce(p.lambda, env, redex);
-				LambdaNode p2 = new LambdaNode(p.depth + 1, ret.lambda);
-				if (p.depth + 1 <= maxDepth)
+
+				LambdaNode lambdaNode = new LambdaNode(p.depth + 1, ret.lambda);
+				IStateNode p2 = lambdaNode;
+				if (lambdaNode.depth <= maxDepth || states.contains(lambdaNode))
 				{
-					if (!gns.containsKey(p2))
+					if (!gns.containsKey(lambdaNode))
 					{
-						String label = p2.lambda.toString().replace("\\", "λ");
-						GraphNode gn = new GraphNode(label);
-						if (p2.getRedexes().isEmpty())
+						GraphNode gn = new GraphNode(lambdaNode.getText());
+						if (lambdaNode.getRedexes().isEmpty())
 						{
-							p2.normal = true;
 							gn.setAccept(true);
 						}
 						f.addNode(gn);
-						gns.put(p2, gn);
+						gns.put(lambdaNode, gn);
 					}
-					queue.add(p2);
+					queue.add(lambdaNode);
+					p2 = lambdaNode;
 				}
 				else
 				{
-					if (NODE_INF == null)
+					InfinityNode infNode = InfinityNode.getInstance();
+					if (!gns.containsKey(infNode))
 					{
-						NODE_INF = new LambdaNode(0, null);
-						states.add(NODE_INF);
-						GraphNode gn = new GraphNode("∞");
+						GraphNode gn = new GraphNode(infNode.getText());
 						f.addNode(gn);
-						gns.put(NODE_INF, gn);
+						gns.put(infNode, gn);
 					}
-					p2 = NODE_INF;
+					p2 = infNode;
 				}
-				addEdge(p, p2);
 				f.addEdge(gns.get(p), gns.get(p2));
 			}
-			//f.repaint();
 			try
 			{
 				Thread.sleep(10);
@@ -240,9 +166,9 @@ public class NDMain
 
 	private static void outputGraph()
 	{
-		Map<LambdaNode, Integer> idMap = new HashMap<LambdaNode, Integer>();
+		Map<IStateNode, Integer> idMap = new HashMap<IStateNode, Integer>();
 		int id = 0;
-		for (LambdaNode node : states)
+		for (IStateNode node : states)
 		{
 			idMap.put(node, id++);
 		}
@@ -250,33 +176,23 @@ public class NDMain
 		System.out.println("digraph {");
 		System.out.println("  ratio=1.0");
 		System.out.println("  fontsize=4;");
-		for (LambdaNode node : states)
+		for (IStateNode node : states)
 		{
-			String label;
-			if (node != NODE_INF)
+			if (node.isNormalForm())
 			{
-				label = node.lambda.toString().replace("\\", "λ");
+				System.out.printf("  %d [label=\"%s\",peripheries=2];\r\n", idMap.get(node), node.getText());
 			}
 			else
 			{
-				label = "∞";
-			}
-			if (node.normal)
-			{
-				System.out.printf("  %d [label=\"%s\",peripheries=2];\r\n", idMap.get(node), label);
-			}
-			else
-			{
-				System.out.printf("  %d [label=\"%s\"];\r\n", idMap.get(node), label);
+				System.out.printf("  %d [label=\"%s\"];\r\n", idMap.get(node), node.getText());
 			}
 			//System.out.printf("  %d [label=\"\"];\r\n", idMap.get(node));
 		}
-		for (Map.Entry<LambdaNode, Set<LambdaNode>> e : edges.entrySet())
+		for (Map.Entry<LambdaNode, Set<IStateNode>> e : edges.entrySet())
 		{
 			LambdaNode start = e.getKey();
-			if (start == NODE_INF) continue;
 			System.out.printf("  %d->{", idMap.get(start));
-			for (LambdaNode end : e.getValue())
+			for (IStateNode end : e.getValue())
 			{
 				System.out.printf(" %d", idMap.get(end));
 			}
@@ -290,47 +206,29 @@ public class NDMain
 		StateFrame f = new StateFrame();
 		f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-		Map<LambdaNode, GraphNode> gns = new HashMap<LambdaNode, GraphNode>();
-		for (LambdaNode node : states)
+		Map<IStateNode, GraphNode> gns = new HashMap<IStateNode, GraphNode>();
+		for (IStateNode node : states)
 		{
-			String label;
-			if (node != NODE_INF)
-			{
-				label = node.lambda.toString().replace("\\", "λ");
-			}
-			else
-			{
-				label = "∞";
-			}
-			
-			GraphNode gn = new GraphNode(label);
+			GraphNode gn = new GraphNode(node.getText());
 			f.addNode(gn);
 			gns.put(node, gn);
-			
-			if (node.normal)
+			if (node.isNormalForm())
 			{
 				gn.setAccept(true);
 			}
-			
-			if (node != NODE_INF && node.depth == 0)
-			{
-				f.setInitialNode(gn);
-			}
 		}
-		for (Map.Entry<LambdaNode, Set<LambdaNode>> e : edges.entrySet())
+		for (Map.Entry<LambdaNode, Set<IStateNode>> e : edges.entrySet())
 		{
 			LambdaNode start = e.getKey();
-			if (start == NODE_INF) continue;
-			
 			GraphNode[] ns = new GraphNode[e.getValue().size()];
 			int i = 0;
-			for (LambdaNode end : e.getValue())
+			for (IStateNode end : e.getValue())
 			{
 				ns[i++] = gns.get(end);
 			}
 			f.addEdge(gns.get(start), ns);
 		}
-		
+
 		f.setVisible(true);
 	}
 
@@ -350,8 +248,7 @@ public class NDMain
 				{
 					Lambda lambda = Lambda.parse(line);
 					//System.out.println("input = " + lambda);
-					searchOnLine(lambda, 100);
-					//outputGraphFrame();
+					searchOnLine(lambda, 10);
 					//outputGraph();
 				}
 				catch (ParserException e)
