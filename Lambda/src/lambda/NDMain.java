@@ -225,10 +225,10 @@ public class NDMain
 				addEdge(p, p2);
 				f.addEdge(gns.get(p), gns.get(p2));
 			}
-			f.repaint();
+			//f.repaint();
 			try
 			{
-				Thread.sleep(500);
+				Thread.sleep(10);
 			}
 			catch (InterruptedException e)
 			{
