@@ -54,11 +54,14 @@ public class RedexFinder
 			if (app.rexpr.isLiteral())
 			{
 				ASTLiteral x = (ASTLiteral)app.rexpr;
-				VariableCollector vc = new VariableCollector(app.lexpr);
-				Set<String> fv = vc.getFreeVariables();
-				if (!fv.contains(x.name))
+				if (abs.name.equals(x.name))
 				{
-					return true;
+					VariableCollector vc = new VariableCollector(app.lexpr);
+					Set<String> fv = vc.getFreeVariables();
+					if (!fv.contains(x.name))
+					{
+						return true;
+					}
 				}
 			}
 		}
