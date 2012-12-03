@@ -396,7 +396,7 @@ public class StateGraphPanel extends JPanel
 			backGraphics.dispose();
 			backGraphics = null;
 		}
-		if (getWidth() != 0 && getHeight() != 0)
+		if (getWidth() > 0 && getHeight() > 0)
 		{
 			backImage = createImage(getWidth(), getHeight());
 			if (backImage != null)
