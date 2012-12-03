@@ -18,8 +18,8 @@ import lambda.ast.Lambda;
 
 public class Environment
 {
-	public static final String APPLICATION_VERSION = "3.71";
-	public static final String RELEASE_DATE = "2012-11-29";
+	public static final String APPLICATION_VERSION = "3.72";
+	public static final String RELEASE_DATE = "2012-12-04";
 
 	public static final String PROPERTY_FILENAME = "properties.txt";
 

@@ -1,6 +1,6 @@
 ﻿
 
-                  Lambda * Magica      ver 3.71
+                  Lambda * Magica      ver 3.72
 
          Untyped Lambda Calculus Interpreter for Education
 
@@ -124,8 +124,18 @@
     :conv         - toggle data abstraction mode
     :q            - quit interpreter
 
+  [NOTE] Although these are available in CUI mode, some of these became
+  disabled in GUI mode.
+  In current version, only :? :f :l :c :pwd :q are available in the input field.
+  Other settings are configured by checkboxes instead of commands.
+
 
 4. Versions
+
+- ver 3.72 (December 4, 2012)
+  fix auto-mode problem
+  fix wrong eta-reduction such as \f.fx --> f
+  change transition presentation according to the kind of reduction
 
 - ver 3.71 (November 29, 2012)
   add step-backward
