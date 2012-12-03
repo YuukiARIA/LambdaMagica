@@ -100,18 +100,7 @@ public class MainFrame extends JFrame
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				String s = inputField.getText().trim();
-				if (!s.isEmpty())
-				{
-					output.setText("");
-					inputField.saveHistory();
-					inputField.setText("");
-					start(s);
-				}
-				else
-				{
-					stepNormal();
-				}
+				processInput();
 			}
 		});
 		inputPanel.add(inputField, BorderLayout.CENTER);
@@ -121,18 +110,7 @@ public class MainFrame extends JFrame
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				String s = inputField.getText().trim();
-				if (!s.isEmpty())
-				{
-					output.setText("");
-					inputField.saveHistory();
-					inputField.setText("");
-					start(s);
-				}
-				else
-				{
-					stepNormal();
-				}
+				processInput();
 			}
 		});
 		inputPanel.add(buttonStep, BorderLayout.EAST);
@@ -367,6 +345,22 @@ public class MainFrame extends JFrame
 		output.setFont(font);
 		redexView.setFont(font);
 		macroView.setFont(font);
+	}
+
+	private void processInput()
+	{
+		String s = inputField.getText().trim();
+		if (!s.isEmpty())
+		{
+			output.setText("");
+			inputField.saveHistory();
+			inputField.setText("");
+			start(s);
+		}
+		else
+		{
+			stepNormal();
+		}
 	}
 
 	private void start(String text)
