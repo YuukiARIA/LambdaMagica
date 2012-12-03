@@ -33,6 +33,7 @@ public class Environment
 	public static final String KEY_GUI_FONT_FAMILY = "gui.fontfamily";
 	public static final String KEY_GUI_FONT_SIZE = "gui.fontsize";
 	public static final String KEY_GUI_FONT_ADDITION = "gui.ui.font.addition";
+	public static final String KEY_PRINT_BETA_ETA = "print_beta_eta";
 
 	private static Environment instance;
 
@@ -52,6 +53,7 @@ public class Environment
 		set(KEY_GUI_FONT_FAMILY, Font.DIALOG_INPUT);
 		set(KEY_GUI_FONT_SIZE, 12);
 		set(KEY_GUI_FONT_ADDITION, 0);
+		set(KEY_PRINT_BETA_ETA, true);
 	}
 
 	public void defineMacro(String name, Lambda lambda)
@@ -170,7 +172,7 @@ public class Environment
 					instance.entries.put(kv[0].trim(), kv[1].trim());
 				}
 			}
-
+			reader.close();
 		}
 		catch (FileNotFoundException e)
 		{

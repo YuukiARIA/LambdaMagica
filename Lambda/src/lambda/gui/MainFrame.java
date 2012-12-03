@@ -69,6 +69,7 @@ public class MainFrame extends JFrame
 	private JCheckBox checkDataConv;
 	private JCheckBox checkAuto;
 	private JCheckBox checkTraceInAuto;
+	private JCheckBox checkPrintBetaEta;
 
 	private JButton buttonLaTeX;
 	private JButton buttonStop;
@@ -165,9 +166,11 @@ public class MainFrame extends JFrame
 		pPrinting.setLayout(new BoxLayout(pPrinting, BoxLayout.Y_AXIS));
 		pPrinting.setBorder(BorderFactory.createTitledBorder("Printing"));
 		checkPrintStep = createOptionCheckBox(Environment.KEY_PRINT_STEP, "print step");
+		checkPrintBetaEta = createOptionCheckBox(Environment.KEY_PRINT_BETA_ETA, "print beta/eta");
 		checkShort = createOptionCheckBox(Environment.KEY_SHORT, "short printing");
 		checkDataConv = createOptionCheckBox(Environment.KEY_DATA_CONV, "show nat/bool data");
 		pPrinting.add(checkPrintStep);
+		pPrinting.add(checkPrintBetaEta);
 		pPrinting.add(checkShort);
 		pPrinting.add(checkDataConv);
 		buttonPanel.add(pPrinting);
@@ -446,16 +449,33 @@ public class MainFrame extends JFrame
 					}
 				}
 
+				if (env.getBoolean(Environment.KEY_PRINT_BETA_ETA))
+				{
+					switch (result.appliedRule)
+					{
+					case BETA_REDUCTION:
+						sb.append("β");
+						break;
+					case ETA_REDUCTION:
+						sb.append("η");
+						break;
+					case MACRO_EXPANSION:
+						sb.append(" ");
+						break;
+					default:
+						break;
+					}
+				}
 				switch (result.appliedRule)
 				{
 				case BETA_REDUCTION:
-					sb.append("β --> ");
-					break;
 				case ETA_REDUCTION:
-					sb.append("η --> ");
+					sb.append(" --> ");
 					break;
 				case MACRO_EXPANSION:
-					sb.append("    = ");
+					sb.append("   = ");
+					break;
+				default:
 					break;
 				}
 
