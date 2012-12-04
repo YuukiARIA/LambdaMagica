@@ -222,9 +222,12 @@ public class RedexView extends JPanel
 			if (SwingUtilities.isLeftMouseButton(e))
 			{
 				updateHoverIndex(e);
-				selectedIndex = hoverIndex;
+				if (hoverIndex != -1)
+				{
+					selectedIndex = hoverIndex;
+				}
 				repaint();
-				if (e.getClickCount() == 2)
+				if (e.getClickCount() >= 2)
 				{
 					dispatchActionEvent();
 				}
