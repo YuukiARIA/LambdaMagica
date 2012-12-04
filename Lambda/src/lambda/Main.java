@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Map;
 import java.util.Scanner;
 
 import lambda.ast.IRedex;
@@ -14,6 +15,7 @@ import lambda.ast.MacroExpander;
 import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
+import lambda.macro.MacroDefinition;
 import lambda.reduction.Reducer;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
@@ -23,6 +25,7 @@ import util.nullable.NullableInt;
 public class Main
 {
 	private static final Environment env = Environment.getEnvironment();
+	private static final MacroDefinition macros = new MacroDefinition();
 	private static final CommandProcessor commands = new CommandProcessor();
 	private static final LambdaInterpreter interpreter = new LambdaInterpreter();
 
@@ -66,7 +69,7 @@ public class Main
 		Lambda lambda = parse(expr);
 		if (lambda != null)
 		{
-			env.defineMacro(name, lambda);
+			macros.defineMacro(name, lambda);
 			String s = String.format("- <%s> is defined as %s", name, lambda);
 			System.out.println(s);
 		}
@@ -121,7 +124,7 @@ public class Main
 					break;
 				}
 
-				Reducer.Result result = interpreter.step(env, redex);
+				Reducer.Result result = interpreter.step(macros, redex);
 				if (!result.reduced)
 				{
 					break;
@@ -155,7 +158,7 @@ public class Main
 					}
 				}
 			}
-			MacroExpander expander = new MacroExpander(env);
+			MacroExpander expander = new MacroExpander(macros);
 			System.out.print("--> " + expander.expand(interpreter.getLambda()));
 			if (!interrupted)
 			{
@@ -262,7 +265,7 @@ public class Main
 					{
 						expr = expr + s + " ";
 					}
-					MacroExpander expander = new MacroExpander(env);
+					MacroExpander expander = new MacroExpander(macros);
 					try
 					{
 						System.out.println(expander.expand(Lambda.parse(expr), true));
@@ -340,7 +343,7 @@ public class Main
 		{
 			public void commandInvoked(String[] params)
 			{
-				env.clearMacros();
+				macros.clearMacros();
 				System.out.println("- macros were cleared.");
 			}
 		});
@@ -348,7 +351,10 @@ public class Main
 		{
 			public void commandInvoked(String[] params)
 			{
-				env.dumpMacros();
+				for (Map.Entry<String, Lambda> e : macros.getDefinedMacros().entrySet())
+				{
+					System.out.println(String.format("- %s = %s", e.getKey(), e.getValue().toString()));
+				}
 			}
 		});
 		commands.add(":pwd", new CommandDelegate()

@@ -2,7 +2,6 @@ package lambda.reduction;
 
 import java.util.Set;
 
-import lambda.Environment;
 import lambda.ast.ASTAbstract;
 import lambda.ast.ASTApply;
 import lambda.ast.ASTLiteral;
@@ -11,14 +10,15 @@ import lambda.ast.IDContext;
 import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.VariableCollector;
+import lambda.macro.MacroDefinition;
 
 public class Reducer
 {
 	private static ReductionVisitor visitor;
 
-	public static Result reduce(Lambda lambda, Environment env, IRedex redex)
+	public static Result reduce(Lambda lambda, MacroDefinition macroDef, IRedex redex)
 	{
-		if (lambda == null || env == null || redex == null)
+		if (lambda == null || macroDef == null || redex == null)
 		{
 			throw new NullPointerException();
 		}
@@ -27,7 +27,7 @@ public class Reducer
 		{
 			visitor = new ReductionVisitor();
 		}
-		visitor.env = env;
+		visitor.macroDef = macroDef;
 		visitor.redex = redex;
 		return visitor.reduce(lambda);
 	}
@@ -48,7 +48,7 @@ public class Reducer
 
 	private static class ReductionVisitor implements Lambda.VisitorRP<Lambda, IDContext>
 	{
-		private Environment env;
+		private MacroDefinition macroDef;
 		private IRedex redex;
 		private ReductionRule appliedRule = ReductionRule.NONE;
 
@@ -115,7 +115,7 @@ public class Reducer
 		{
 			if (m == redex)
 			{
-				Lambda l = env.expandMacro(m.name);
+				Lambda l = macroDef.expandMacro(m.name);
 				if (l != null)
 				{
 					appliedRule = ReductionRule.MACRO_EXPANSION;

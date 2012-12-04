@@ -16,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -43,9 +44,11 @@ import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
 import lambda.ast.RedexFinder;
+import lambda.ast.VariableCollector;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
 import lambda.gui.macroview.MacroDefinitionView;
+import lambda.macro.MacroDefinition;
 import lambda.reduction.Reducer.Result;
 import lambda.reduction.ReductionRule;
 import lambda.system.CommandDelegate;
@@ -80,6 +83,7 @@ public class MainFrame extends JFrame
 	private MacroDefinitionView macroView;
 
 	private Environment env = Environment.getEnvironment();
+	private MacroDefinition macros = new MacroDefinition();
 	private final CommandProcessor commands = new CommandProcessor();
 	private final LambdaInterpreter interpreter = new LambdaInterpreter();
 
@@ -424,7 +428,7 @@ public class MainFrame extends JFrame
 		}
 
 		boolean succeeded = true;
-		Result result = interpreter.step(env, redex);
+		Result result = interpreter.step(macros, redex);
 		if (result.reduced)
 		{
 			if (!auto || env.getBoolean(Environment.KEY_TRACE))
@@ -560,7 +564,7 @@ public class MainFrame extends JFrame
 
 	private void printEndState(Lambda lambda, String label)
 	{
-		MacroExpander expander = new MacroExpander(env);
+		MacroExpander expander = new MacroExpander(macros);
 		lambda = expander.expand(lambda, true);
 		println("==> " + lambda + "    " + label);
 		if (env.getBoolean(Environment.KEY_DATA_CONV))
@@ -586,9 +590,16 @@ public class MainFrame extends JFrame
 		try
 		{
 			Lambda lambda = Lambda.parse(expr);
-			env.defineMacro(name, lambda);
+			macros.defineMacro(name, lambda);
 			macroView.addMacro(name, lambda);
 			println(String.format("- <%s> is defined as %s", name, lambda));
+
+			VariableCollector vc = new VariableCollector(lambda);
+			Set<String> fv = vc.getFreeVariables();
+			if (!fv.isEmpty())
+			{
+				println(String.format("- Warning: <%s> contains free variables %s", name, fv));
+			}
 		}
 		catch (ParserException e)
 		{
@@ -709,7 +720,7 @@ public class MainFrame extends JFrame
 
 	private void clearMacros()
 	{
-		env.clearMacros();
+		macros.clearMacros();
 		macroView.clearList();
 		println("- macros were cleared.");
 	}
@@ -761,7 +772,7 @@ public class MainFrame extends JFrame
 					try
 					{
 						Lambda lambda = Lambda.parse(expr);
-						MacroExpander expander = new MacroExpander(env);
+						MacroExpander expander = new MacroExpander(macros);
 						println(expander.expand(lambda, true).toString());
 					}
 					catch (ParserException e)

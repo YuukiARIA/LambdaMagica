@@ -10,11 +10,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
-
-import lambda.ast.Lambda;
 
 public class Environment
 {
@@ -37,7 +34,6 @@ public class Environment
 
 	private static Environment instance;
 
-	private Map<String, Lambda> macros = new TreeMap<String, Lambda>();
 	private Map<String, String> entries = new TreeMap<String, String>();
 
 	private Font guiFont;
@@ -54,44 +50,6 @@ public class Environment
 		set(KEY_GUI_FONT_SIZE, 12);
 		set(KEY_GUI_FONT_ADDITION, 0);
 		set(KEY_PRINT_BETA_ETA, true);
-	}
-
-	public void defineMacro(String name, Lambda lambda)
-	{
-		macros.put(name, lambda);
-	}
-
-	public Lambda expandMacro(String name)
-	{
-		return macros.get(name);
-	}
-
-	public void dumpMacros()
-	{
-		for (Map.Entry<String, Lambda> ent : macros.entrySet())
-		{
-			echoMacro(ent.getKey(), ent.getValue());
-		}
-	}
-
-	public Map<String, Lambda> getDefinedMacros()
-	{
-		return Collections.unmodifiableMap(macros);
-	}
-
-	private static void echoMacro(String name, Lambda lambda)
-	{
-		System.out.println(getMacroString(name, "=", lambda));
-	}
-
-	private static String getMacroString(String name, String connector, Lambda lambda)
-	{
-		return String.format("- <%s> %s %s", name, connector, lambda);
-	}
-
-	public void clearMacros()
-	{
-		macros.clear();
 	}
 
 	public String get(String key, String defval)

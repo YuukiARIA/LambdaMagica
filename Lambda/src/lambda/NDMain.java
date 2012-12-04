@@ -17,6 +17,7 @@ import lambda.ast.IRedex;
 import lambda.ast.Lambda;
 import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
+import lambda.macro.MacroDefinition;
 import lambda.reduction.Reducer;
 import lambda.reduction.Reducer.Result;
 import lambda.stategraph.IStateNode;
@@ -27,6 +28,8 @@ import lambda.stategraph.gui.StateFrame;
 
 public class NDMain
 {
+	private static final MacroDefinition MACRO_DEF = new MacroDefinition();
+
 	private static Set<IStateNode> states = new HashSet<IStateNode>();
 	private static Map<LambdaNode, Set<IStateNode>> edges = new HashMap<LambdaNode, Set<IStateNode>>();
 	private static Map<IStateNode, GraphNode> nodeMapping = new HashMap<IStateNode, GraphNode>();
@@ -62,8 +65,6 @@ public class NDMain
 
 	private static void search(Lambda lambda, int maxDepth)
 	{
-		Environment env = Environment.getEnvironment();
-
 		Queue<LambdaNode> queue = new LinkedList<LambdaNode>();
 		queue.add(new LambdaNode(0, lambda));
 		while (!queue.isEmpty())
@@ -79,7 +80,7 @@ public class NDMain
 			List<IRedex> redexes = RedexFinder.getRedexList(p.lambda);
 			for (IRedex redex : redexes)
 			{
-				Reducer.Result ret = Reducer.reduce(p.lambda, env, redex);
+				Reducer.Result ret = Reducer.reduce(p.lambda, MACRO_DEF, redex);
 				LambdaNode p2 = new LambdaNode(p.depth + 1, ret.lambda);
 				if (p.depth + 1 <= maxDepth || states.contains(p2))
 				{
@@ -101,8 +102,6 @@ public class NDMain
 		StateFrame f = new StateFrame();
 		f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		f.setVisible(true);
-
-		Environment env = Environment.getEnvironment();
 
 		nodeMapping.clear();
 
@@ -131,7 +130,7 @@ public class NDMain
 
 			for (IRedex redex : redexes)
 			{
-				Result ret = Reducer.reduce(p1.lambda, env, redex);
+				Result ret = Reducer.reduce(p1.lambda, MACRO_DEF, redex);
 
 				LambdaNode lambdaNode = new LambdaNode(p1.depth + 1, ret.lambda);
 				GraphNode gn2;

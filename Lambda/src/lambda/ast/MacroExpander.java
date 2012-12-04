@@ -1,15 +1,15 @@
 package lambda.ast;
 
-import lambda.Environment;
+import lambda.macro.MacroDefinition;
 
 public class MacroExpander implements Lambda.VisitorR<Lambda>
 {
-	private Environment env;
+	private MacroDefinition macroDef;
 	private boolean recursive;
 
-	public MacroExpander(Environment env)
+	public MacroExpander(MacroDefinition macroDef)
 	{
-		this.env = env;
+		this.macroDef = macroDef;
 	}
 
 	public Lambda expand(Lambda lambda)
@@ -43,7 +43,7 @@ public class MacroExpander implements Lambda.VisitorR<Lambda>
 
 	public Lambda visit(ASTMacro macro)
 	{
-		Lambda l = env.expandMacro(macro.name);
+		Lambda l = macroDef.expandMacro(macro.name);
 		if (l != null)
 		{
 			return recursive ? l.accept(this) : l;
