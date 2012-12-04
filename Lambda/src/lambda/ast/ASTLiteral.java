@@ -16,6 +16,11 @@ public class ASTLiteral extends Lambda
 		this.name = name;
 	}
 
+	public ASTLiteral deepCopy()
+	{
+		return new ASTLiteral(originalName, name);
+	}
+
 	public boolean isLiteral()
 	{
 		return true;
@@ -23,7 +28,7 @@ public class ASTLiteral extends Lambda
 
 	protected Lambda substitute(IDContext context, String name, Lambda lambda)
 	{
-		return name.equals(this.name) ? lambda : this;
+		return name.equals(this.name) ? lambda.deepCopy() : this;
 	}
 
 	public void accept(Lambda.Visitor visitor)

@@ -6,6 +6,8 @@ import lambda.ast.parser.ParserException;
 
 public abstract class Lambda
 {
+	public abstract Lambda deepCopy();
+
 	public boolean isMacro()
 	{
 		return false;

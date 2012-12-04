@@ -16,6 +16,11 @@ public class ASTAbstract extends Lambda implements IRedexNode
 		this.e = e;
 	}
 
+	public ASTAbstract deepCopy()
+	{
+		return new ASTAbstract(originalName, name, e.deepCopy());
+	}
+
 	public boolean isAbstraction()
 	{
 		return true;

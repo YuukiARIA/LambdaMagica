@@ -9,6 +9,11 @@ public class ASTMacro extends Lambda implements IRedexNode
 		this.name = name;
 	}
 
+	public ASTMacro deepCopy()
+	{
+		return new ASTMacro(name);
+	}
+
 	public boolean isMacro()
 	{
 		return true;

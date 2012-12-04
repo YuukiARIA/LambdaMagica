@@ -11,6 +11,11 @@ public class ASTApply extends Lambda implements IRedexNode
 		this.rexpr = rexpr;
 	}
 
+	public ASTApply deepCopy()
+	{
+		return new ASTApply(lexpr.deepCopy(), rexpr.deepCopy());
+	}
+
 	public boolean isApplication()
 	{
 		return true;
