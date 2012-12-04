@@ -1,15 +1,23 @@
-package lambda.ast;
+package lambda.reduction;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import lambda.ast.ASTAbstract;
+import lambda.ast.ASTApply;
+import lambda.ast.ASTLiteral;
+import lambda.ast.ASTMacro;
+import lambda.ast.IRedexNode;
+import lambda.ast.Lambda;
+import lambda.ast.VariableCollector;
 
 public class RedexFinder
 {
 	private static VisitorImpl visitor;
 	private static LOVisitor loVisitor;
 
-	public static IRedex getLeftMostOuterMostRedex(Lambda lambda, boolean etaEnabled)
+	public static IRedexNode getLeftMostOuterMostRedex(Lambda lambda, boolean etaEnabled)
 	{
 		if (loVisitor == null)
 		{
@@ -24,19 +32,19 @@ public class RedexFinder
 		return getLeftMostOuterMostRedex(lambda, etaEnabled) == null;
 	}
 
-	public static List<IRedex> getRedexList(Lambda lambda)
+	public static List<IRedexNode> getRedexList(Lambda lambda)
 	{
 		return getRedexList(lambda, false);
 	}
 
-	public static List<IRedex> getRedexList(Lambda lambda, boolean enableEta)
+	public static List<IRedexNode> getRedexList(Lambda lambda, boolean enableEta)
 	{
 		if (visitor == null)
 		{
 			visitor = new VisitorImpl();
 		}
 		visitor.etaEnabled = enableEta;
-		List<IRedex> redexes = new ArrayList<IRedex>();
+		List<IRedexNode> redexes = new ArrayList<IRedexNode>();
 		lambda.accept(visitor, redexes);
 		return redexes;
 	}
@@ -68,11 +76,11 @@ public class RedexFinder
 		return false;
 	}
 
-	private static class VisitorImpl implements Lambda.VisitorP<List<IRedex>>
+	private static class VisitorImpl implements Lambda.VisitorP<List<IRedexNode>>
 	{
 		private boolean etaEnabled;
 
-		public void visit(ASTAbstract abs, List<IRedex> redexes)
+		public void visit(ASTAbstract abs, List<IRedexNode> redexes)
 		{
 			if (etaEnabled && isEtaRedex(abs))
 			{
@@ -81,7 +89,7 @@ public class RedexFinder
 			abs.e.accept(this, redexes);
 		}
 
-		public void visit(ASTApply app, List<IRedex> redexes)
+		public void visit(ASTApply app, List<IRedexNode> redexes)
 		{
 			if (isBetaRedex(app))
 			{
@@ -91,21 +99,21 @@ public class RedexFinder
 			app.rexpr.accept(this, redexes);
 		}
 
-		public void visit(ASTLiteral literal, List<IRedex> redexes)
+		public void visit(ASTLiteral literal, List<IRedexNode> redexes)
 		{
 		}
 
-		public void visit(ASTMacro macro, List<IRedex> redexes)
+		public void visit(ASTMacro macro, List<IRedexNode> redexes)
 		{
 			redexes.add(macro);
 		}
 	}
 
-	private static class LOVisitor implements Lambda.VisitorR<IRedex>
+	private static class LOVisitor implements Lambda.VisitorR<IRedexNode>
 	{
 		private boolean etaEnabled;
 
-		public IRedex visit(ASTAbstract abs)
+		public IRedexNode visit(ASTAbstract abs)
 		{
 			if (etaEnabled && isEtaRedex(abs))
 			{
@@ -114,13 +122,13 @@ public class RedexFinder
 			return abs.e.accept(this);
 		}
 
-		public IRedex visit(ASTApply app)
+		public IRedexNode visit(ASTApply app)
 		{
 			if (isBetaRedex(app))
 			{
 				return app;
 			}
-			IRedex redex = app.lexpr.accept(this);
+			IRedexNode redex = app.lexpr.accept(this);
 			if (redex == null)
 			{
 				redex = app.rexpr.accept(this);
@@ -128,12 +136,12 @@ public class RedexFinder
 			return redex;
 		}
 
-		public IRedex visit(ASTLiteral literal)
+		public IRedexNode visit(ASTLiteral literal)
 		{
 			return null;
 		}
 
-		public IRedex visit(ASTMacro macro)
+		public IRedexNode visit(ASTMacro macro)
 		{
 			return macro;
 		}

@@ -40,16 +40,16 @@ import lambda.Environment;
 import lambda.LaTeXStringBuilder;
 import lambda.LambdaInterpreter;
 import lambda.LambdaInterpreter.State;
-import lambda.ast.IRedex;
+import lambda.ast.IRedexNode;
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
-import lambda.ast.RedexFinder;
 import lambda.ast.VariableCollector;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
 import lambda.gui.macroview.MacroDefinitionView;
 import lambda.macro.MacroDefinition;
 import lambda.reduction.Reducer.Result;
+import lambda.reduction.RedexFinder;
 import lambda.reduction.ReductionRule;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
@@ -402,15 +402,15 @@ public class MainFrame extends JFrame
 		}
 	}
 
-	private IRedex getDefaultRedex()
+	private IRedexNode getDefaultRedex()
 	{
 		boolean eta = env.getBoolean(Environment.KEY_ETA_REDUCTION);
 		return RedexFinder.getLeftMostOuterMostRedex(interpreter.getLambda(), eta);
 	}
 
-	private IRedex getSelectedRedex()
+	private IRedexNode getSelectedRedex()
 	{
-		IRedex redex = redexView.getSelectedRedex();
+		IRedexNode redex = redexView.getSelectedRedex();
 		return redex != null ? redex : getDefaultRedex();
 	}
 
@@ -421,7 +421,7 @@ public class MainFrame extends JFrame
 			return false;
 		}
 
-		IRedex redex = auto ? getDefaultRedex() : getSelectedRedex();
+		IRedexNode redex = auto ? getDefaultRedex() : getSelectedRedex();
 		if (redex == null)
 		{
 			return false;

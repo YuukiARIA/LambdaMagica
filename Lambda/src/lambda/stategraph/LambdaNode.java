@@ -3,9 +3,9 @@ package lambda.stategraph;
 import java.util.Collections;
 import java.util.List;
 
-import lambda.ast.IRedex;
+import lambda.ast.IRedexNode;
 import lambda.ast.Lambda;
-import lambda.ast.RedexFinder;
+import lambda.reduction.RedexFinder;
 import lambda.serialize.LambdaSerializer;
 
 public class LambdaNode implements IStateNode
@@ -15,7 +15,7 @@ public class LambdaNode implements IStateNode
 
 	private String text;
 	private short[] data;
-	private List<IRedex> redexes;
+	private List<IRedexNode> redexes;
 
 	public LambdaNode(int depth, Lambda lambda)
 	{
@@ -39,7 +39,7 @@ public class LambdaNode implements IStateNode
 		return text;
 	}
 
-	public List<IRedex> getRedexes()
+	public List<IRedexNode> getRedexes()
 	{
 		return Collections.unmodifiableList(redexes);
 	}

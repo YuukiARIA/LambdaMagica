@@ -6,7 +6,7 @@ import lambda.ast.ASTAbstract;
 import lambda.ast.ASTApply;
 import lambda.ast.ASTLiteral;
 import lambda.ast.ASTMacro;
-import lambda.ast.IRedex;
+import lambda.ast.IRedexNode;
 import lambda.ast.Lambda;
 
 public class LambdaLabelBuilder
@@ -16,7 +16,7 @@ public class LambdaLabelBuilder
 	private static final Color COLOR_APP_R = new Color(200, 200, 255, 200);
 	private static final Color COLOR_MACRO = new Color(200, 255, 200, 200);
 
-	private IRedex redex;
+	private IRedexNode redex;
 	private ConvertVisitor visitor;
 
 	public LambdaLabelBuilder()
@@ -24,7 +24,7 @@ public class LambdaLabelBuilder
 		visitor = new ConvertVisitor();
 	}
 
-	public LambdaLabel createLambdaLabel(Lambda lambda, IRedex redex)
+	public LambdaLabel createLambdaLabel(Lambda lambda, IRedexNode redex)
 	{
 		this.redex = redex;
 		return lambda.accept(visitor);

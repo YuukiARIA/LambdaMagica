@@ -1,6 +1,6 @@
 package lambda.ast;
 
-public class ASTMacro extends Lambda implements IRedex
+public class ASTMacro extends Lambda implements IRedexNode
 {
 	public final String name;
 

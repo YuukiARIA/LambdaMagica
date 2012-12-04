@@ -4,10 +4,10 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import lambda.ast.IRedex;
+import lambda.ast.IRedexNode;
 import lambda.ast.Lambda;
-import lambda.ast.RedexFinder;
 import lambda.macro.MacroDefinition;
+import lambda.reduction.RedexFinder;
 import lambda.reduction.Reducer;
 import lambda.reduction.Reducer.Result;
 import lambda.reduction.ReductionRule;
@@ -20,7 +20,7 @@ public class LambdaInterpreter
 		public final Lambda lambda;
 		public final ReductionRule appliedRule;
 
-		private IRedex redex;
+		private IRedexNode redex;
 
 		public State(int stepNumber, Lambda lambda, ReductionRule appliedRule)
 		{
@@ -29,7 +29,7 @@ public class LambdaInterpreter
 			this.appliedRule = appliedRule;
 		}
 
-		public IRedex getReducedRedex()
+		public IRedexNode getReducedRedex()
 		{
 			return redex;
 		}
@@ -55,7 +55,7 @@ public class LambdaInterpreter
 		pushState(new State(0, sourceLambda, ReductionRule.NONE));
 	}
 
-	public Result step(MacroDefinition macros, IRedex redex)
+	public Result step(MacroDefinition macros, IRedexNode redex)
 	{
 		Result result = Reducer.reduce(getLambda(), macros, redex);
 		isCyclic = AlphaComparator.alphaEquiv(getLambda(), result.lambda);

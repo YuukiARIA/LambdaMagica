@@ -13,11 +13,11 @@ import java.util.Set;
 
 import javax.swing.WindowConstants;
 
-import lambda.ast.IRedex;
+import lambda.ast.IRedexNode;
 import lambda.ast.Lambda;
-import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
 import lambda.macro.MacroDefinition;
+import lambda.reduction.RedexFinder;
 import lambda.reduction.Reducer;
 import lambda.reduction.Reducer.Result;
 import lambda.stategraph.IStateNode;
@@ -77,8 +77,8 @@ public class NDMain
 			}
 			states.add(p);
 
-			List<IRedex> redexes = RedexFinder.getRedexList(p.lambda);
-			for (IRedex redex : redexes)
+			List<IRedexNode> redexes = RedexFinder.getRedexList(p.lambda);
+			for (IRedexNode redex : redexes)
 			{
 				Reducer.Result ret = Reducer.reduce(p.lambda, MACRO_DEF, redex);
 				LambdaNode p2 = new LambdaNode(p.depth + 1, ret.lambda);
@@ -122,13 +122,13 @@ public class NDMain
 
 			GraphNode gn1 = addGraphNode(f, p1);
 
-			List<IRedex> redexes = p1.getRedexes();
+			List<IRedexNode> redexes = p1.getRedexes();
 			if (redexes.isEmpty())
 			{
 				gn1.setAccept(true);
 			}
 
-			for (IRedex redex : redexes)
+			for (IRedexNode redex : redexes)
 			{
 				Result ret = Reducer.reduce(p1.lambda, MACRO_DEF, redex);
 

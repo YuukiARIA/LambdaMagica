@@ -4,7 +4,7 @@ import lambda.ast.ASTAbstract;
 import lambda.ast.ASTApply;
 import lambda.ast.ASTLiteral;
 import lambda.ast.ASTMacro;
-import lambda.ast.IRedex;
+import lambda.ast.IRedexNode;
 import lambda.ast.Lambda;
 
 public class LaTeXStringBuilder
@@ -16,7 +16,7 @@ public class LaTeXStringBuilder
 		return build(lambda, null);
 	}
 
-	public String build(Lambda lambda, IRedex redex)
+	public String build(Lambda lambda, IRedexNode redex)
 	{
 		visitor.redex = redex;
 		return lambda.accept(visitor);
@@ -24,7 +24,7 @@ public class LaTeXStringBuilder
 
 	private static class VisitorImpl implements Lambda.VisitorR<String>
 	{
-		private IRedex redex;
+		private IRedexNode redex;
 
 		public String visit(ASTAbstract abs)
 		{
