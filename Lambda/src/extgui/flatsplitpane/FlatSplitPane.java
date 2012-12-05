@@ -44,7 +44,7 @@ public class FlatSplitPane extends JSplitPane
 
 class FlatSplitPaneUI extends BasicSplitPaneUI
 {
-	private static BasicSplitPaneDivider divider;
+	private BasicSplitPaneDivider divider;
 
 	public BasicSplitPaneDivider createDefaultDivider()
 	{
