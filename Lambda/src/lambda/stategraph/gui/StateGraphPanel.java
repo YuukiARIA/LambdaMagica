@@ -9,8 +9,11 @@ import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.CubicCurve2D;
@@ -24,7 +27,11 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.swing.AbstractAction;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 @SuppressWarnings("serial")
 public class StateGraphPanel extends JPanel
@@ -58,6 +65,7 @@ public class StateGraphPanel extends JPanel
 	private List<Edge> outEdgeLines = new ArrayList<Edge>();
 	private boolean structureChanged;
 	private boolean hoverNodeChanged;
+	private boolean resized;
 	private Point translation = new Point();
 	private boolean antialias;
 	private boolean drawCurve;
@@ -94,11 +102,14 @@ public class StateGraphPanel extends JPanel
 		{
 			public void componentResized(ComponentEvent e)
 			{
+				resized = true;
 				resumeAnimation();
 			}
 		});
 
+		setFocusable(true);
 		setIgnoreRepaint(true);
+
 		final Thread thread = new Thread()
 		{
 			public void run()
@@ -126,8 +137,8 @@ public class StateGraphPanel extends JPanel
 		thread.setDaemon(true);
 		thread.start();
 
-		setAntialias(true);
 		setDrawCurve(true);
+		setupAccelerators();
 	}
 
 	public void setAntialias(boolean b)
@@ -140,6 +151,39 @@ public class StateGraphPanel extends JPanel
 	{
 		drawCurve = b;
 		resumeAnimation();
+	}
+
+	private void setupAccelerators()
+	{
+		int mod = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+		InputMap im = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, mod), "min");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, mod), "min");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, mod), "mag");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, mod), "mag");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SEMICOLON, mod), "mag");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_0, mod), "reset");
+		getActionMap().put("min", new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				minifyNodeSize();
+			}
+		});
+		getActionMap().put("mag", new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				magnifyNodeSize();
+			}
+		});
+		getActionMap().put("reset", new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				resetAll();
+			}
+		});
 	}
 
 	private void suspendAnimation()
@@ -226,6 +270,23 @@ public class StateGraphPanel extends JPanel
 		for (GraphNode sink : sinks)
 		{
 			addEdge(source, sink);
+		}
+	}
+
+	public void clearGraph()
+	{
+		synchronized (nodes)
+		{
+			nodes.clear();
+		}
+		setInitialNode(null);
+		setHoverNode(null);
+		synchronized (LOCK_EDGES)
+		{
+			edges.clear();
+			edgeLines.clear();
+			inEdgeLines.clear();
+			outEdgeLines.clear();
 		}
 	}
 
@@ -361,7 +422,7 @@ public class StateGraphPanel extends JPanel
 				animating = n.update() || animating;
 			}
 		}
-		if (structureChanged)
+		if (structureChanged || resized)
 		{
 			layoutNodes();
 		}
@@ -370,10 +431,11 @@ public class StateGraphPanel extends JPanel
 		{
 			updateEdgeLines();
 		}
-		if (!animating && !structureChanged && !hoverNodeChanged)
+		if (!animating && !structureChanged && !hoverNodeChanged && !resized)
 		{
 			animationSuspended = true;
 		}
+		resized = false;
 		structureChanged = false;
 		hoverNodeChanged = false;
 	}

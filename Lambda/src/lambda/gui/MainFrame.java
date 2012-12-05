@@ -57,9 +57,10 @@ import lambda.conversion.Converter;
 import lambda.gui.macroview.MacroDefinitionView;
 import lambda.gui.util.GUIUtils;
 import lambda.macro.MacroDefinition;
-import lambda.reduction.Reducer.Result;
 import lambda.reduction.RedexFinder;
+import lambda.reduction.Reducer.Result;
 import lambda.reduction.ReductionRule;
+import lambda.stategraph.gui.StateGraphView;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
 import util.nullable.NullableBool;
@@ -227,6 +228,33 @@ public class MainFrame extends JFrame
 		macroView.setFont(env.getGUIFont());
 		tabbedPane.addTab("Macros", macroView);
 
+		final StateGraphView sgView = new StateGraphView();
+		sgView.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				String s = inputField.getText().trim();
+				if (!s.isEmpty())
+				{
+					output.setText("");
+					inputField.saveHistory();
+					inputField.setText("");
+					try
+					{
+						Lambda lambda = Lambda.parse(s);
+						MacroExpander expander = new MacroExpander(macros);
+						lambda = expander.expand(lambda, true);
+						sgView.startSearch(lambda);
+					}
+					catch (ParserException e1)
+					{
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+		tabbedPane.addTab("StateGraph", sgView);
+
 		final JSplitPane sp = new FlatSplitPane();
 		sp.setContinuousLayout(true);
 		sp.setLeftComponent(leftPanel);
@@ -238,6 +266,7 @@ public class MainFrame extends JFrame
 				sp.setDividerLocation(0.7);
 				sp.setResizeWeight(0.5);
 				split.setDividerLocation(0.8);
+				split.setResizeWeight(0.9);
 			}
 		});
 		sp.setDividerLocation(Short.MAX_VALUE);
