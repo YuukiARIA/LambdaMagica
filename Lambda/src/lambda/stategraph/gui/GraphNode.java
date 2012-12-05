@@ -8,6 +8,7 @@ public class GraphNode
 {
 	private static final Color INITIAL_COLOR = new Color(100, 100, 255);
 	private static final Color ACCEPT_COLOR = new Color(255, 100, 100);
+	private static final Color INFINITY_COLOR = new Color(200, 200, 200);
 	private static final Color NODE_COLOR = new Color(100, 255, 100);
 
 	public static int R = 8;
@@ -17,10 +18,8 @@ public class GraphNode
 	private Point2D.Double location = new Point2D.Double();
 	private Point2D.Double destination = new Point2D.Double();
 	private boolean accept;
-
-	public GraphNode()
-	{
-	}
+	private boolean infinity;
+	private boolean animating;
 
 	public GraphNode(String label)
 	{
@@ -42,6 +41,11 @@ public class GraphNode
 		return label;
 	}
 
+	public void setInfinity(boolean b)
+	{
+		infinity = b;
+	}
+
 	public boolean isAccept()
 	{
 		return accept;
@@ -56,22 +60,26 @@ public class GraphNode
 	{
 		location.x = x;
 		location.y = y;
+		animating = true;
 	}
 
 	public void setDestination(int x, int y)
 	{
 		destination.x = x;
 		destination.y = y;
+		animating = true;
 	}
 
 	public void setX(int x)
 	{
 		destination.x = x;
+		animating = true;
 	}
 
 	public void setY(int y)
 	{
 		destination.y = y;
+		animating = true;
 	}
 
 	public int getX()
@@ -84,15 +92,28 @@ public class GraphNode
 		return (int)location.y;
 	}
 
-	public void update()
+	public boolean update()
 	{
-		location.x += 0.2 * (destination.x - location.x);
-		location.y += 0.2 * (destination.y - location.y);
+		if (animating)
+		{
+			location.x += 0.2 * (destination.x - location.x);
+			location.y += 0.2 * (destination.y - location.y);
+			if (location.distanceSq(destination) < 0.1)
+			{
+				location.setLocation(destination);
+				animating = false;
+			}
+		}
+		return animating;
 	}
 
 	public void draw(Graphics g, boolean initial)
 	{
-		if (isAccept())
+		if (infinity)
+		{
+			g.setColor(INFINITY_COLOR);
+		}
+		else if (isAccept())
 		{
 			g.setColor(ACCEPT_COLOR);
 		}

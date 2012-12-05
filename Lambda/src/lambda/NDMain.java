@@ -152,8 +152,9 @@ public class NDMain
 				{
 					InfinityNode infNode = InfinityNode.getInstance();
 					gn2 = addGraphNode(f, infNode);
+					gn2.setInfinity(true);
 				}
-				f.addEdge(gn1, gn2);
+				f.addEdges(gn1, gn2);
 			}
 			try
 			{
@@ -229,7 +230,7 @@ public class NDMain
 			{
 				ns[i++] = gns.get(end);
 			}
-			f.addEdge(gns.get(start), ns);
+			f.addEdges(gns.get(start), ns);
 		}
 
 		f.setVisible(true);

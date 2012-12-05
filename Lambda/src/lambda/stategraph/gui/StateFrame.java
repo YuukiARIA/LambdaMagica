@@ -74,9 +74,9 @@ public class StateFrame extends JFrame
 		gp.setInitialNode(node);
 	}
 
-	public void addEdge(GraphNode source, GraphNode ... sinks)
+	public void addEdges(GraphNode source, GraphNode ... sinks)
 	{
-		gp.addEdge(source, sinks);
+		gp.addEdges(source, sinks);
 	}
 
 	public void paint(Graphics g)

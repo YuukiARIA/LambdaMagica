@@ -5,16 +5,15 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
-import java.awt.Toolkit;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.CubicCurve2D;
 import java.awt.geom.QuadCurve2D;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +41,8 @@ public class StateGraphPanel extends JPanel
 		}
 	}
 
+	private static final Object LOCK_EDGES = new Object();
+
 	private static final Color TEXT_BACK_COLOR = new Color(255, 255, 255, 220);
 	private static final Stroke LINE_STROKE = new BasicStroke(0.5F, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 	private static final Stroke EM_LINE_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
@@ -58,9 +59,9 @@ public class StateGraphPanel extends JPanel
 	private boolean structureChanged;
 	private boolean hoverNodeChanged;
 	private Point translation = new Point();
-
-	private Image backImage;
-	private Graphics2D backGraphics;
+	private boolean antialias;
+	private boolean drawCurve;
+	private boolean animationSuspended;
 
 	public StateGraphPanel()
 	{
@@ -84,6 +85,7 @@ public class StateGraphPanel extends JPanel
 				mp = e.getPoint();
 				translation.x += dx;
 				translation.y += dy;
+				resumeAnimation();
 			}
 		};
 		addMouseListener(m);
@@ -92,14 +94,12 @@ public class StateGraphPanel extends JPanel
 		{
 			public void componentResized(ComponentEvent e)
 			{
-				createBackBuffer();
+				resumeAnimation();
 			}
 		});
 
-		setDoubleBuffered(false);
 		setIgnoreRepaint(true);
-		Thread thread;
-		thread = new Thread()
+		final Thread thread = new Thread()
 		{
 			public void run()
 			{
@@ -107,8 +107,12 @@ public class StateGraphPanel extends JPanel
 				{
 					while (true)
 					{
+						if (animationSuspended)
+						{
+							suspendAnimation();
+						}
 						updateFrame();
-						renderFrame();
+						repaint();
 						Thread.sleep(20);
 					}
 				}
@@ -118,24 +122,71 @@ public class StateGraphPanel extends JPanel
 				}
 			}
 		};
+		thread.setName("AnimationThread");
 		thread.setDaemon(true);
 		thread.start();
+
+		setAntialias(true);
+		setDrawCurve(true);
+	}
+
+	public void setAntialias(boolean b)
+	{
+		antialias = b;
+		resumeAnimation();
+	}
+
+	public void setDrawCurve(boolean b)
+	{
+		drawCurve = b;
+		resumeAnimation();
+	}
+
+	private void suspendAnimation()
+	{
+		try
+		{
+			synchronized (this)
+			{
+				while (animationSuspended)
+				{
+					notifyAll();
+					wait();
+				}
+			}
+		}
+		catch (InterruptedException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private void resumeAnimation()
+	{
+		synchronized (this)
+		{
+			animationSuspended = false;
+			notifyAll();
+		}
 	}
 
 	public void magnifyNodeSize()
 	{
 		GraphNode.R = GraphNode.R + 1;
+		resumeAnimation();
 	}
 
 	public void minifyNodeSize()
 	{
 		GraphNode.R = Math.max(GraphNode.R - 1, 0);
+		resumeAnimation();
 	}
 
 	public void resetAll()
 	{
 		GraphNode.R = 8;
 		translation.setLocation(0, 0);
+		resumeAnimation();
 	}
 
 	public void addNode(GraphNode node)
@@ -145,14 +196,40 @@ public class StateGraphPanel extends JPanel
 			nodes.add(node);
 			structureChanged = true;
 		}
+		resumeAnimation();
 	}
 
 	public void setInitialNode(GraphNode node)
 	{
 		initialNode = node;
+		resumeAnimation();
 	}
 
-	public void updateHoverNode(int x, int y)
+	public void addEdge(GraphNode source, GraphNode sink)
+	{
+		synchronized (LOCK_EDGES)
+		{
+			Set<GraphNode> sinks = edges.get(source);
+			if (sinks == null)
+			{
+				sinks = new HashSet<GraphNode>();
+				edges.put(source, sinks);
+			}
+			sinks.add(sink);
+			structureChanged = true;
+			resumeAnimation();
+		}
+	}
+
+	public void addEdges(GraphNode source, GraphNode ... sinks)
+	{
+		for (GraphNode sink : sinks)
+		{
+			addEdge(source, sink);
+		}
+	}
+
+	private void updateHoverNode(int x, int y)
 	{
 		GraphNode h = null;
 		synchronized (nodes)
@@ -176,6 +253,7 @@ public class StateGraphPanel extends JPanel
 		{
 			hoverNode = node;
 			hoverNodeChanged = true;
+			resumeAnimation();
 		}
 	}
 
@@ -184,30 +262,7 @@ public class StateGraphPanel extends JPanel
 		return hoverNode;
 	}
 
-	public void addEdge(GraphNode source, GraphNode sink)
-	{
-		synchronized (edges)
-		{
-			Set<GraphNode> sinks = edges.get(source);
-			if (sinks == null)
-			{
-				sinks = new HashSet<GraphNode>();
-				edges.put(source, sinks);
-			}
-			sinks.add(sink);
-			structureChanged = true;
-		}
-	}
-
-	public void addEdge(GraphNode source, GraphNode ... sinks)
-	{
-		for (GraphNode sink : sinks)
-		{
-			addEdge(source, sink);
-		}
-	}
-
-	public void layoutNodes()
+	private void layoutNodes()
 	{
 		if (initialNode == null) return;
 
@@ -233,7 +288,7 @@ public class StateGraphPanel extends JPanel
 			set.add(n1);
 
 			Set<GraphNode> nextNodes;
-			synchronized (edges)
+			synchronized (LOCK_EDGES)
 			{
 				nextNodes = edges.get(n1);
 			}
@@ -267,12 +322,12 @@ public class StateGraphPanel extends JPanel
 
 	private void updateEdgeLines()
 	{
-		edgeLines.clear();
-		outEdgeLines.clear();
-		inEdgeLines.clear();
 		GraphNode hn = getHoverNode();
-		synchronized (edges)
+		synchronized (LOCK_EDGES)
 		{
+			edgeLines.clear();
+			outEdgeLines.clear();
+			inEdgeLines.clear();
 			for (Map.Entry<GraphNode, Set<GraphNode>> e : edges.entrySet())
 			{
 				GraphNode src = e.getKey();
@@ -298,11 +353,12 @@ public class StateGraphPanel extends JPanel
 
 	private void updateFrame()
 	{
+		boolean animating = false;
 		synchronized (nodes)
 		{
 			for (GraphNode n : nodes)
 			{
-				n.update();
+				animating = n.update() || animating;
 			}
 		}
 		if (structureChanged)
@@ -314,21 +370,12 @@ public class StateGraphPanel extends JPanel
 		{
 			updateEdgeLines();
 		}
+		if (!animating && !structureChanged && !hoverNodeChanged)
+		{
+			animationSuspended = true;
+		}
 		structureChanged = false;
 		hoverNodeChanged = false;
-	}
-
-	private void renderFrame()
-	{
-		if (backImage == null)
-		{
-			createBackBuffer();
-		}
-		if (backGraphics != null)
-		{
-			render(backGraphics);
-			present();
-		}
 	}
 
 	private void render(Graphics2D g)
@@ -340,11 +387,18 @@ public class StateGraphPanel extends JPanel
 		int trY = translation.y;
 		g.translate(trX, trY);
 
-		//g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		if (antialias)
+		{
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		}
+
 		g.setStroke(LINE_STROKE);
 
-		g.setColor(Color.LIGHT_GRAY);
-		drawEdges(g, edgeLines);
+		synchronized (LOCK_EDGES)
+		{
+			g.setColor(Color.LIGHT_GRAY);
+			drawEdges(g, edgeLines);
+		}
 
 		synchronized (nodes)
 		{
@@ -356,16 +410,16 @@ public class StateGraphPanel extends JPanel
 
 		g.setStroke(EM_LINE_STROKE);
 
-		g.setColor(Color.BLUE);
-		drawEdges(g, inEdgeLines);
-
-		g.setColor(Color.RED);
-		drawEdges(g, outEdgeLines);
-
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+		synchronized (LOCK_EDGES)
+		{
+			g.setColor(Color.BLUE);
+			drawEdges(g, inEdgeLines);
+			g.setColor(Color.RED);
+			drawEdges(g, outEdgeLines);
+		}
 
 		GraphNode hn = getHoverNode();
-		if (hn != null && hn.getLabel() != null)
+		if (hn != null)
 		{
 			g.setColor(TEXT_BACK_COLOR);
 			FontMetrics fm = g.getFontMetrics();
@@ -376,46 +430,40 @@ public class StateGraphPanel extends JPanel
 			g.drawString(hn.getLabel(), hn.getX() + 20, hn.getY() - 8);
 		}
 
+		if (antialias)
+		{
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+		}
+
 		g.translate(-trX, -trY);
 	}
 
-	private static void drawEdges(Graphics2D g, List<Edge> edges)
+	protected void paintComponent(Graphics g)
+	{
+		render((Graphics2D)g);
+	}
+
+	private void drawEdges(Graphics2D g, List<Edge> edges)
 	{
 		for (Edge edge : edges)
 		{
 			GraphNode p = edge.p, q = edge.q;
-			drawCurveEdge(g, p.getX(), p.getY(), q.getX(), q.getY());
-		}
-	}
-
-	private synchronized void createBackBuffer()
-	{
-		backImage = null;
-		if (backGraphics != null)
-		{
-			backGraphics.dispose();
-			backGraphics = null;
-		}
-		if (getWidth() > 0 && getHeight() > 0)
-		{
-			backImage = createImage(getWidth(), getHeight());
-			if (backImage != null)
+			if (p == q)
 			{
-				backGraphics = (Graphics2D)backImage.getGraphics();
+				drawSelfCyclicEdge(g, p.getX(), p.getY());
+			}
+			else
+			{
+				if (drawCurve)
+				{
+					drawCurveEdge(g, p.getX(), p.getY(), q.getX(), q.getY());
+				}
+				else
+				{
+					drawStraightEdge(g, p.getX(), p.getY(), q.getX(), q.getY());
+				}
 			}
 		}
-	}
-
-	private void present()
-	{
-		Graphics g = getGraphics();
-		g.drawImage(backImage, 0, 0, null);
-		g.dispose();
-		Toolkit.getDefaultToolkit().sync();
-	}
-
-	public void paint(Graphics g)
-	{
 	}
 
 	private static void drawCurveEdge(Graphics2D g, int x0, int y0, int x1, int y1)
@@ -453,6 +501,23 @@ public class StateGraphPanel extends JPanel
 		double tY = y1 - r * sinA;
 		g.drawLine((int)sX, (int)sY, (int)tX, (int)tY);
 		drawTriangle(g, tX, tY, a);
+	}
+
+	private static void drawSelfCyclicEdge(Graphics2D g, int x, int y)
+	{
+		int r = GraphNode.R;
+		double x1 = x;
+		double y1 = y - r;
+		double cx1 = x + 4 * r;
+		double cy1 = y - 8 * r;
+		double cx2 = x + 4 * r;
+		double cy2 = y + 8 * r;
+		double x2 = x;
+		double y2 = y + r;
+		CubicCurve2D curve = new CubicCurve2D.Double(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+		g.draw(curve);
+		double a = Math.atan2(y2 - cy2, x2 - cx2);
+		drawTriangle(g, x, y + r, a);
 	}
 
 	private static void drawTriangle(Graphics g, double x, double y, double angle)
