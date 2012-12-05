@@ -2,6 +2,7 @@ package lambda.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -15,26 +16,33 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.GroupLayout;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import lambda.Environment;
 import lambda.LaTeXStringBuilder;
@@ -48,6 +56,7 @@ import lambda.ast.VariableCollector;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
 import lambda.gui.macroview.MacroDefinitionView;
+import lambda.gui.util.GUIUtils;
 import lambda.macro.MacroDefinition;
 import lambda.reduction.Reducer.Result;
 import lambda.reduction.ReductionRule;
@@ -61,6 +70,8 @@ import extgui.flatsplitpane.FlatSplitPane;
 @SuppressWarnings("serial")
 public class MainFrame extends JFrame
 {
+	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("[HH:mm:ss]");
+
 	private JTabbedPane tabbedPane;
 
 	private LineEditor inputField;
@@ -74,12 +85,16 @@ public class MainFrame extends JFrame
 	private JCheckBox checkTraceInAuto;
 	private JCheckBox checkPrintBetaEta;
 
+	private JSpinner spinnerMaxSteps;
+	private JButton buttonResume;
+
 	private JButton buttonLaTeX;
 	private JButton buttonStop;
 	private JButton buttonClear;
 
 	private RedexView redexView;
 	private JTextArea output;
+	private JTextArea systemOutput;
 	private MacroDefinitionView macroView;
 
 	private Environment env = Environment.getEnvironment();
@@ -88,7 +103,7 @@ public class MainFrame extends JFrame
 	private final LambdaInterpreter interpreter = new LambdaInterpreter();
 
 	private boolean autoRunning;
-	private Thread thread;
+	private AutoRunningThread thread;
 
 	public MainFrame()
 	{
@@ -126,15 +141,17 @@ public class MainFrame extends JFrame
 		output = new JTextArea();
 		output.setEditable(false);
 		output.setFont(env.getGUIFont());
-		leftPanel.add(new JScrollPane(output), BorderLayout.CENTER);
 
-		JPanel pAuto = new JPanel();
-		pAuto.setLayout(new BoxLayout(pAuto, BoxLayout.Y_AXIS));
-		pAuto.setBorder(BorderFactory.createTitledBorder("Auto Mode"));
-		checkAuto = createOptionCheckBox(Environment.KEY_AUTO, "auto reduction");
-		pAuto.add(checkAuto);
-		checkTraceInAuto = createOptionCheckBox(Environment.KEY_TRACE, "show trace in auto mode");
-		pAuto.add(checkTraceInAuto);
+		systemOutput = new JTextArea();
+		systemOutput.setEditable(false);
+		systemOutput.setFont(env.getGUIFont());
+
+		final JSplitPane split = new FlatSplitPane(JSplitPane.VERTICAL_SPLIT, true);
+		split.setTopComponent(new JScrollPane(output));
+		split.setBottomComponent(new JScrollPane(systemOutput));
+		leftPanel.add(split, BorderLayout.CENTER);
+
+		JPanel pAuto = createAutoModeConfigurationPanel();
 		buttonPanel.add(pAuto);
 
 		JPanel pReduction = new JPanel();
@@ -167,17 +184,6 @@ public class MainFrame extends JFrame
 		});
 		buttonPanel.add(buttonLaTeX);
 
-		buttonStop = new JButton("stop");
-		buttonStop.setEnabled(false);
-		buttonStop.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				stopAuto();
-			}
-		});
-		buttonPanel.add(buttonStop);
-
 		buttonClear = new JButton("clear output");
 		buttonClear.addActionListener(new ActionListener()
 		{
@@ -198,30 +204,8 @@ public class MainFrame extends JFrame
 		});
 		buttonPanel.add(buttonClearMacros);
 
-		final int DEF_SIZE = GroupLayout.DEFAULT_SIZE;
-		final int INF_SIZE = Short.MAX_VALUE;
-		GroupLayout gl = new GroupLayout(buttonPanel);
-		gl.setAutoCreateContainerGaps(true);
-		gl.setAutoCreateGaps(true);
-		gl.setHorizontalGroup(gl.createParallelGroup()
-			.addComponent(pAuto, 0, DEF_SIZE, INF_SIZE)
-			.addComponent(pReduction, 0, DEF_SIZE, INF_SIZE)
-			.addComponent(pPrinting, 0, DEF_SIZE, INF_SIZE)
-			.addComponent(buttonLaTeX, 0, DEF_SIZE, INF_SIZE)
-			.addComponent(buttonStop, 0, DEF_SIZE, INF_SIZE)
-			.addComponent(buttonClear, 0, DEF_SIZE, INF_SIZE)
-			.addComponent(buttonClearMacros, 0, DEF_SIZE, INF_SIZE)
-		);
-		gl.setVerticalGroup(gl.createSequentialGroup()
-			.addComponent(pAuto)
-			.addComponent(pReduction)
-			.addComponent(pPrinting)
-			.addComponent(buttonLaTeX)
-			.addComponent(buttonStop)
-			.addComponent(buttonClear)
-			.addComponent(buttonClearMacros)
-		);
-		buttonPanel.setLayout(gl);
+		GUIUtils.setVerticalLayout(buttonPanel,
+			pAuto, pReduction, pPrinting, buttonLaTeX, buttonClear, buttonClearMacros);
 
 		tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("General", buttonPanel);
@@ -253,6 +237,7 @@ public class MainFrame extends JFrame
 			{
 				sp.setDividerLocation(0.7);
 				sp.setResizeWeight(0.5);
+				split.setDividerLocation(0.8);
 			}
 		});
 		sp.setDividerLocation(Short.MAX_VALUE);
@@ -262,6 +247,67 @@ public class MainFrame extends JFrame
 		setupAcceleration();
 
 		initializeCommands();
+	}
+
+	private JPanel createAutoModeConfigurationPanel()
+	{
+		JPanel p = new JPanel();
+		p.setBorder(BorderFactory.createTitledBorder("Auto Mode"));
+		checkAuto = createOptionCheckBox(Environment.KEY_AUTO, "auto reduction");
+		checkAuto.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				boolean b = checkAuto.isSelected();
+				checkTraceInAuto.setEnabled(b);
+				spinnerMaxSteps.setEnabled(b);
+			}
+		});
+		checkTraceInAuto = createOptionCheckBox(Environment.KEY_TRACE, "show trace in auto mode");
+
+		JPanel stepPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		spinnerMaxSteps = new JSpinner(new SpinnerNumberModel(env.getInt(Environment.KEY_CONTINUE_STEPS, 100), 0, 1000, 1));
+		spinnerMaxSteps.addChangeListener(new ChangeListener()
+		{
+			public void stateChanged(ChangeEvent e)
+			{
+				env.set(Environment.KEY_CONTINUE_STEPS, spinnerMaxSteps.getValue());
+			}
+		});
+		stepPanel.add(new JLabel("step limit:"));
+		stepPanel.add(spinnerMaxSteps);
+
+		buttonResume = new JButton("continue");
+		buttonResume.setEnabled(false);
+		buttonResume.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				if (autoRunning && thread != null)
+				{
+					thread.resumeAuto();
+				}
+			}
+		});
+		buttonStop = new JButton("stop");
+		buttonStop.setEnabled(false);
+		buttonStop.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				if (autoRunning && thread != null)
+				{
+					stopAuto();
+				}
+			}
+		});
+		p.add(checkAuto);
+		p.add(checkTraceInAuto);
+		p.add(stepPanel);
+		p.add(buttonResume);
+		p.add(buttonStop);
+		GUIUtils.setVerticalLayout(p, checkAuto, checkTraceInAuto, stepPanel, buttonResume, buttonStop);
+		return p;
 	}
 
 	private void setupAcceleration()
@@ -347,6 +393,7 @@ public class MainFrame extends JFrame
 	{
 		inputField.setFont(font);
 		output.setFont(font);
+		systemOutput.setFont(font);
 		redexView.setFont(font);
 		macroView.setFont(font);
 	}
@@ -672,6 +719,7 @@ public class MainFrame extends JFrame
 		{
 			interpreter.terminate();
 			autoRunning = false;
+			thread.resumeAuto();
 			try
 			{
 				thread.join();
@@ -680,7 +728,7 @@ public class MainFrame extends JFrame
 			{
 				e.printStackTrace();
 			}
-			println("- STOPPED.");
+			printSystemMessage("Stopped.");
 		}
 	}
 
@@ -803,7 +851,6 @@ public class MainFrame extends JFrame
 				println("- :?         - show this help.");
 				println("- :f <expr>  - expand all macros and show expression.");
 				println("- :l <path>  - load lines from a text file.");
-				//println("- :s <n>     - set the number of continuation steps.");
 				println("- :c         - clear all macros.");
 				println("- :pwd       - print working directory.");
 				println("- :q         - quit interpreter.");
@@ -858,6 +905,20 @@ public class MainFrame extends JFrame
 		});
 	}
 
+	private synchronized void printSystemMessage(String text)
+	{
+		String s = DATE_FORMAT.format(new Date()) + " " + text;
+		systemOutput.append(s);
+		systemOutput.append("\n");
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				systemOutput.setCaretPosition(systemOutput.getText().length());
+			}
+		});
+	}
+
 	private synchronized void deleteLine()
 	{
 		String text = output.getText().trim();
@@ -871,10 +932,30 @@ public class MainFrame extends JFrame
 
 	private class AutoRunningThread extends Thread
 	{
+		private int nextLimit;
+		private boolean noLimit;
+		private boolean suspended;
+
 		public AutoRunningThread()
 		{
 			setName("AutoRunningThread");
 			setDaemon(true);
+			updateLimit();
+		}
+
+		public synchronized void resumeAuto()
+		{
+			printSystemMessage("Resumed.");
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run()
+				{
+					buttonResume.setEnabled(false);
+				}
+			});
+			updateLimit();
+			suspended = false;
+			notifyAll();
 		}
 
 		public void run()
@@ -886,6 +967,11 @@ public class MainFrame extends JFrame
 					if (!stepAuto())
 					{
 						break;
+					}
+					if (isLimited())
+					{
+						printSystemMessage(interpreter.getReductionStepCount() + " steps done. Continue?");
+						suspendAuto();
 					}
 				}
 			}
@@ -899,11 +985,71 @@ public class MainFrame extends JFrame
 			}
 		}
 
+		private void updateLimit()
+		{
+			int limit = env.getInt(Environment.KEY_CONTINUE_STEPS, 100);
+			if (noLimit)
+			{
+				if (limit >= 0)
+				{
+					nextLimit = interpreter.getReductionStepCount() + limit;
+					noLimit = false;
+				}
+			}
+			else
+			{
+				if (limit == 0)
+				{
+					noLimit = true;
+				}
+				else
+				{
+					nextLimit += limit;
+				}
+			}
+		}
+
+		private boolean isLimited()
+		{
+			return !noLimit && interpreter.getReductionStepCount() >= nextLimit;
+		}
+
+		private synchronized void suspendAuto()
+		{
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run()
+				{
+					buttonResume.setEnabled(true);
+				}
+			});
+			suspended = true;
+			try
+			{
+				while (suspended)
+				{
+					notifyAll();
+					wait();
+				}
+			}
+			catch (InterruptedException e)
+			{
+				e.printStackTrace();
+			}
+		}
+
 		private void finalizeAuto()
 		{
 			autoRunning = false;
-			buttonStop.setEnabled(false);
-			buttonStep.setEnabled(true);
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run()
+				{
+					buttonResume.setEnabled(false);
+					buttonStop.setEnabled(false);
+					buttonStep.setEnabled(true);
+				}
+			});
 			thread = null;
 		}
 	}
