@@ -12,6 +12,8 @@ import javax.swing.UIManager;
 
 public final class GUIUtils
 {
+	private static String[] availableFontFamilyNames;
+
 	public static void setVerticalLayout(Container host, Component ... components)
 	{
 		GroupLayout gl = new GroupLayout(host);
@@ -36,23 +38,24 @@ public final class GUIUtils
 		{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch (Exception localException)
+		catch (Exception e)
 		{
+			e.printStackTrace();
 		}
 	}
 
 	public static void preloadFontNames()
 	{
-		Thread thread = new Thread()
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		availableFontFamilyNames = ge.getAvailableFontFamilyNames();
+	}
+
+	public static String[] getAvailableFontFamilyNames()
+	{
+		if (availableFontFamilyNames == null)
 		{
-			public void run()
-			{
-				GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-				ge.getAvailableFontFamilyNames();
-			}
-		};
-		thread.setName("PreloadThread");
-		thread.setDaemon(true);
-		thread.start();
+			preloadFontNames();
+		}
+		return availableFontFamilyNames;
 	}
 }

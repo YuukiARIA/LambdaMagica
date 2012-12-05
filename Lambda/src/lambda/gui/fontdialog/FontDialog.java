@@ -2,12 +2,10 @@ package lambda.gui.fontdialog;
 
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -19,12 +17,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import lambda.gui.fontdialog.event.FontUpdateListener;
+import lambda.gui.util.GUIUtils;
 
 @SuppressWarnings("serial")
 public class FontDialog extends JDialog
@@ -57,35 +55,11 @@ public class FontDialog extends JDialog
 			}
 		});
 		add(familyNames);
-		SwingWorker<String[], Void> worker = new SwingWorker<String[], Void>()
+		for (String name : GUIUtils.getAvailableFontFamilyNames())
 		{
-			protected void done()
-			{
-				try
-				{
-					for (String name : get())
-					{
-						familyNames.addItem(name);
-					}
-				}
-				catch (InterruptedException e)
-				{
-					e.printStackTrace();
-				}
-				catch (ExecutionException e)
-				{
-					e.printStackTrace();
-				}
-				familyNames.setSelectedItem(initSelectedName);
-			}
-
-			protected String[] doInBackground() throws Exception
-			{
-				GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-				return ge.getAvailableFontFamilyNames();
-			}
-		};
-		worker.execute();
+			familyNames.addItem(name);
+		}
+		familyNames.setSelectedItem(initSelectedName);
 
 		fontSize = new JSpinner(new SpinnerNumberModel(12, 5, 120, 1));
 		fontSize.addChangeListener(new ChangeListener()
