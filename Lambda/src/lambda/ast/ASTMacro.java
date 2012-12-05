@@ -1,12 +1,17 @@
 package lambda.ast;
 
-public class ASTMacro extends Lambda implements IRedex
+public class ASTMacro extends Lambda implements IRedexNode
 {
 	public final String name;
 
 	public ASTMacro(String name)
 	{
 		this.name = name;
+	}
+
+	public ASTMacro deepCopy()
+	{
+		return new ASTMacro(name);
 	}
 
 	public boolean isMacro()

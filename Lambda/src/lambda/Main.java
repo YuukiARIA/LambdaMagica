@@ -9,13 +9,13 @@ import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Scanner;
 
-import lambda.ast.IRedex;
+import lambda.ast.IRedexNode;
 import lambda.ast.Lambda;
 import lambda.ast.MacroExpander;
-import lambda.ast.RedexFinder;
 import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
 import lambda.macro.MacroDefinition;
+import lambda.reduction.RedexFinder;
 import lambda.reduction.Reducer;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
@@ -118,7 +118,7 @@ public class Main
 
 			while (true)
 			{
-				IRedex redex = RedexFinder.getLeftMostOuterMostRedex(interpreter.getLambda(), env.getBoolean(Environment.KEY_ETA_REDUCTION));
+				IRedexNode redex = RedexFinder.getLeftMostOuterMostRedex(interpreter.getLambda(), env.getBoolean(Environment.KEY_ETA_REDUCTION));
 				if (redex == null)
 				{
 					break;

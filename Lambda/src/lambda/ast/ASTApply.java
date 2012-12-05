@@ -1,6 +1,6 @@
 package lambda.ast;
 
-public class ASTApply extends Lambda implements IRedex
+public class ASTApply extends Lambda implements IRedexNode
 {
 	public final Lambda lexpr;
 	public final Lambda rexpr;
@@ -9,6 +9,11 @@ public class ASTApply extends Lambda implements IRedex
 	{
 		this.lexpr = lexpr;
 		this.rexpr = rexpr;
+	}
+
+	public ASTApply deepCopy()
+	{
+		return new ASTApply(lexpr.deepCopy(), rexpr.deepCopy());
 	}
 
 	public boolean isApplication()

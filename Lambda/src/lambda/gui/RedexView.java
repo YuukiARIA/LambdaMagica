@@ -19,13 +19,13 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import lambda.Environment;
-import lambda.ast.IRedex;
+import lambda.ast.IRedexNode;
 import lambda.ast.Lambda;
-import lambda.ast.RedexFinder;
 import lambda.gui.lambdalabel.LambdaLabel;
 import lambda.gui.lambdalabel.LambdaLabelBuilder;
 import lambda.gui.lambdalabel.LambdaLabelDrawer;
 import lambda.gui.lambdalabel.LambdaLabelMetrics;
+import lambda.reduction.RedexFinder;
 import util.Pair;
 
 @SuppressWarnings("serial")
@@ -35,7 +35,7 @@ public class RedexView extends JPanel
 	private static final Color TRIANGLE_COLOR = new Color(192, 192, 255);
 
 	private LambdaLabelBuilder builder = new LambdaLabelBuilder();
-	private List<Pair<IRedex, LambdaLabel>> labels = new ArrayList<Pair<IRedex, LambdaLabel>>();
+	private List<Pair<IRedexNode, LambdaLabel>> labels = new ArrayList<Pair<IRedexNode, LambdaLabel>>();
 	private Insets margin = new Insets(0, 0, 0, 0);
 	private int height = -1;
 	private int maxWidth;
@@ -69,7 +69,7 @@ public class RedexView extends JPanel
 		selectedIndex = -1;
 	}
 
-	private void addLabel(IRedex r, LambdaLabel l)
+	private void addLabel(IRedexNode r, LambdaLabel l)
 	{
 		labels.add(Pair.of(r, l));
 		calcPreferredSize();
@@ -79,7 +79,7 @@ public class RedexView extends JPanel
 	{
 		Graphics g = getGraphics();
 		maxWidth = 0;
-		for (Pair<IRedex, LambdaLabel> p : labels)
+		for (Pair<IRedexNode, LambdaLabel> p : labels)
 		{
 			maxWidth = Math.max(maxWidth, LambdaLabelMetrics.getWidth(g, p._2));
 		}
@@ -91,7 +91,7 @@ public class RedexView extends JPanel
 	public void setRedexes(Lambda lambda)
 	{
 		clearLabels();
-		for (IRedex redex : RedexFinder.getRedexList(lambda, Environment.getEnvironment().getBoolean(Environment.KEY_ETA_REDUCTION)))
+		for (IRedexNode redex : RedexFinder.getRedexList(lambda, Environment.getEnvironment().getBoolean(Environment.KEY_ETA_REDUCTION)))
 		{
 			LambdaLabel label = builder.createLambdaLabel(lambda, redex);
 			addLabel(redex, label);
@@ -99,7 +99,7 @@ public class RedexView extends JPanel
 		setSelectedIndex(0);
 	}
 
-	public IRedex getSelectedRedex()
+	public IRedexNode getSelectedRedex()
 	{
 		int i = getSelectedIndex();
 		if (0 <= i && i < labels.size())
@@ -181,7 +181,7 @@ public class RedexView extends JPanel
 		LambdaLabelDrawer drawer = new LambdaLabelDrawer();
 		for (int i = 0; i < labels.size(); i++)
 		{
-			Pair<IRedex, LambdaLabel> p = labels.get(i);
+			Pair<IRedexNode, LambdaLabel> p = labels.get(i);
 			drawer.draw(g, p._2, 0, i * height, height);
 		}
 		g.translate(-height / 2, 0);

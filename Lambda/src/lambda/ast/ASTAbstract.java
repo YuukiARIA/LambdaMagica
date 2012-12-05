@@ -3,7 +3,7 @@ package lambda.ast;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ASTAbstract extends Lambda implements IRedex
+public class ASTAbstract extends Lambda implements IRedexNode
 {
 	public final String originalName;
 	public final String name;
@@ -14,6 +14,11 @@ public class ASTAbstract extends Lambda implements IRedex
 		this.originalName = originalName;
 		this.name = name;
 		this.e = e;
+	}
+
+	public ASTAbstract deepCopy()
+	{
+		return new ASTAbstract(originalName, name, e.deepCopy());
 	}
 
 	public boolean isAbstraction()

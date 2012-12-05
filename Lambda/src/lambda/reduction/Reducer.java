@@ -7,7 +7,7 @@ import lambda.ast.ASTApply;
 import lambda.ast.ASTLiteral;
 import lambda.ast.ASTMacro;
 import lambda.ast.IDContext;
-import lambda.ast.IRedex;
+import lambda.ast.IRedexNode;
 import lambda.ast.Lambda;
 import lambda.ast.VariableCollector;
 import lambda.macro.MacroDefinition;
@@ -16,7 +16,7 @@ public class Reducer
 {
 	private static ReductionVisitor visitor;
 
-	public static Result reduce(Lambda lambda, MacroDefinition macroDef, IRedex redex)
+	public static Result reduce(Lambda lambda, MacroDefinition macroDef, IRedexNode redex)
 	{
 		if (lambda == null || macroDef == null || redex == null)
 		{
@@ -49,7 +49,7 @@ public class Reducer
 	private static class ReductionVisitor implements Lambda.VisitorRP<Lambda, IDContext>
 	{
 		private MacroDefinition macroDef;
-		private IRedex redex;
+		private IRedexNode redex;
 		private ReductionRule appliedRule = ReductionRule.NONE;
 
 		public Lambda visit(ASTAbstract abs, IDContext context)
