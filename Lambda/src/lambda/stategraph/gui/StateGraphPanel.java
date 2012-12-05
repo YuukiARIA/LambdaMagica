@@ -16,9 +16,12 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.QuadCurve2D;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -28,6 +31,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -48,15 +52,34 @@ public class StateGraphPanel extends JPanel
 		}
 	}
 
-	private static final Object LOCK_EDGES = new Object();
+	private static class NodeLocationComparator implements Comparator<GraphNode>
+	{
+		private static NodeLocationComparator instance;
+
+		public int compare(GraphNode n1, GraphNode n2)
+		{
+			if (n1.getDepth() == n2.getDepth())
+			{
+				return Double.compare(n1.getX(), n2.getX());
+			}
+			return n1.getDepth() < n2.getDepth() ? -1 : 1;
+		}
+
+		public static Comparator<GraphNode> getInstance()
+		{
+			return instance == null ? (instance = new NodeLocationComparator()) : instance;
+		}
+	}
 
 	private static final Color TEXT_BACK_COLOR = new Color(255, 255, 255, 220);
 	private static final Stroke LINE_STROKE = new BasicStroke(0.5F, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 	private static final Stroke EM_LINE_STROKE = new BasicStroke(1.0F, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
 
+	private final Object lockEdges = new Object();
+
 	private GraphNode initialNode;
 	private GraphNode hoverNode;
-	private Set<GraphNode> nodes = new HashSet<GraphNode>();
+	private List<GraphNode> nodes = new LinkedList<GraphNode>();
 	private Map<Integer, Set<GraphNode>> depthSlicedNodes = new HashMap<Integer, Set<GraphNode>>();
 	private int maxDepth;
 	private Map<GraphNode, Set<GraphNode>> edges = new HashMap<GraphNode, Set<GraphNode>>();
@@ -70,6 +93,7 @@ public class StateGraphPanel extends JPanel
 	private boolean antialias;
 	private boolean drawCurve;
 	private boolean animationSuspended;
+	private double scale = 1.0;
 
 	public StateGraphPanel()
 	{
@@ -80,6 +104,7 @@ public class StateGraphPanel extends JPanel
 			public void mousePressed(MouseEvent e)
 			{
 				mp = e.getPoint();
+				requestFocus();
 			}
 
 			public void mouseMoved(MouseEvent e)
@@ -95,9 +120,25 @@ public class StateGraphPanel extends JPanel
 				translation.y += dy;
 				resumeAnimation();
 			}
+
+			public void mouseWheelMoved(MouseWheelEvent e)
+			{
+				int r = e.getWheelRotation();
+				if (r >= 0)
+				{
+					scale *= 0.9;
+				}
+				else
+				{
+					scale *= 1.1;
+				}
+				resized = true;
+				resumeAnimation();
+			}
 		};
 		addMouseListener(m);
 		addMouseMotionListener(m);
+		addMouseWheelListener(m);
 		addComponentListener(new ComponentAdapter()
 		{
 			public void componentResized(ComponentEvent e)
@@ -110,7 +151,10 @@ public class StateGraphPanel extends JPanel
 		setFocusable(true);
 		setIgnoreRepaint(true);
 
-		final Thread thread = new Thread()
+		setDrawCurve(true);
+		setupAccelerators();
+
+		Thread thread = new Thread()
 		{
 			public void run()
 			{
@@ -136,9 +180,6 @@ public class StateGraphPanel extends JPanel
 		thread.setName("AnimationThread");
 		thread.setDaemon(true);
 		thread.start();
-
-		setDrawCurve(true);
-		setupAccelerators();
 	}
 
 	public void setAntialias(boolean b)
@@ -156,28 +197,30 @@ public class StateGraphPanel extends JPanel
 	private void setupAccelerators()
 	{
 		int mod = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-		InputMap im = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		InputMap im = getInputMap(JComponent.WHEN_FOCUSED);
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, mod), "min");
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, mod), "min");
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, mod), "mag");
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, mod), "mag");
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_SEMICOLON, mod), "mag");
 		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_0, mod), "reset");
-		getActionMap().put("min", new AbstractAction()
+
+		ActionMap am = getActionMap();
+		am.put("min", new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
 				minifyNodeSize();
 			}
 		});
-		getActionMap().put("mag", new AbstractAction()
+		am.put("mag", new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
 				magnifyNodeSize();
 			}
 		});
-		getActionMap().put("reset", new AbstractAction()
+		am.put("reset", new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
@@ -230,6 +273,8 @@ public class StateGraphPanel extends JPanel
 	{
 		GraphNode.R = 8;
 		translation.setLocation(0, 0);
+		scale = 1.0;
+		resized = true;
 		resumeAnimation();
 	}
 
@@ -251,7 +296,7 @@ public class StateGraphPanel extends JPanel
 
 	public void addEdge(GraphNode source, GraphNode sink)
 	{
-		synchronized (LOCK_EDGES)
+		synchronized (lockEdges)
 		{
 			Set<GraphNode> sinks = edges.get(source);
 			if (sinks == null)
@@ -281,7 +326,7 @@ public class StateGraphPanel extends JPanel
 		}
 		setInitialNode(null);
 		setHoverNode(null);
-		synchronized (LOCK_EDGES)
+		synchronized (lockEdges)
 		{
 			edges.clear();
 			edgeLines.clear();
@@ -349,7 +394,7 @@ public class StateGraphPanel extends JPanel
 			set.add(n1);
 
 			Set<GraphNode> nextNodes;
-			synchronized (LOCK_EDGES)
+			synchronized (lockEdges)
 			{
 				nextNodes = edges.get(n1);
 			}
@@ -369,14 +414,18 @@ public class StateGraphPanel extends JPanel
 
 	private void updateNodeLocation()
 	{
+		double width = scale * getWidth();
+		double height = scale * getHeight();
 		for (Map.Entry<Integer, Set<GraphNode>> e : depthSlicedNodes.entrySet())
 		{
 			Set<GraphNode> set = e.getValue();
 			int n = set.size(), i = 0;
+			int depth = e.getKey();
+			int y = (int)((getHeight() - height) / 2 + height * (depth + 1) / (maxDepth + 2));
 			for (GraphNode node : set)
 			{
-				node.setX(getWidth() * ++i / (n + 1));
-				node.setY(getHeight() * (node.getDepth() + 1) / (maxDepth + 2));
+				int x = (int)((getWidth() - width) / 2 + width * ++i / (n + 1));
+				node.setDestination(x, y);
 			}
 		}
 	}
@@ -384,7 +433,7 @@ public class StateGraphPanel extends JPanel
 	private void updateEdgeLines()
 	{
 		GraphNode hn = getHoverNode();
-		synchronized (LOCK_EDGES)
+		synchronized (lockEdges)
 		{
 			edgeLines.clear();
 			outEdgeLines.clear();
@@ -427,6 +476,10 @@ public class StateGraphPanel extends JPanel
 			layoutNodes();
 		}
 		updateNodeLocation();
+		synchronized (nodes)
+		{
+			Collections.sort(nodes, NodeLocationComparator.getInstance());
+		}
 		if (hoverNodeChanged || structureChanged)
 		{
 			updateEdgeLines();
@@ -456,7 +509,7 @@ public class StateGraphPanel extends JPanel
 
 		g.setStroke(LINE_STROKE);
 
-		synchronized (LOCK_EDGES)
+		synchronized (lockEdges)
 		{
 			g.setColor(Color.LIGHT_GRAY);
 			drawEdges(g, edgeLines);
@@ -472,7 +525,7 @@ public class StateGraphPanel extends JPanel
 
 		g.setStroke(EM_LINE_STROKE);
 
-		synchronized (LOCK_EDGES)
+		synchronized (lockEdges)
 		{
 			g.setColor(Color.BLUE);
 			drawEdges(g, inEdgeLines);
