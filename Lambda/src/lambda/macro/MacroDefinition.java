@@ -22,7 +22,8 @@ public class MacroDefinition
 
 	public Lambda expandMacro(String name)
 	{
-		return macros.get(name);
+		Lambda l = macros.get(name);
+		return l != null ? l.deepCopy() : null;
 	}
 
 	public Map<String, Lambda> getDefinedMacros()
