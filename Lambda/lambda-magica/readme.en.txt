@@ -1,6 +1,6 @@
 ﻿
 
-                  Lambda * Magica      ver 3.72
+                  Lambda * Magica      ver 3.80
 
          Untyped Lambda Calculus Interpreter for Education
 
@@ -131,6 +131,13 @@
 
 
 4. Versions
+
+- ver 3.80 (Descember 6, 2012)
+  fix wrong redex finding
+  add setting of the number of continuation steps in auto-mode
+  improve graph panel and optimize animation algorithm
+  integrate Lambda-state graph into GUI mode
+  fix deadlock on startup
 
 - ver 3.72 (December 4, 2012)
   fix auto-mode problem

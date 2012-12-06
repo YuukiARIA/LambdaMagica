@@ -1,6 +1,6 @@
 ﻿
 
-                  Lambda * Magica      ver 3.72
+                  Lambda * Magica      ver 3.80
 
          Untyped Lambda Calculus Interpreter for Education
 
@@ -123,6 +123,13 @@
 
 
 4. バージョン情報
+
+- ver 3.80 (Descember 6, 2012)
+  簡約基の識別が正しくなかった不具合を修正
+  オートモードにおける連続実行ステップ数を設定できるようにした
+  グラフパネルの整備とアニメーション機構の最適化
+  ラムダ状態グラフ探索機能を実装及びGUIモードに統合
+  起動時にデッドロックが稀に生じることがある不具合を修正
 
 - ver 3.72 (December 4, 2012)
   オートモードが動かなくなる不具合を修正
