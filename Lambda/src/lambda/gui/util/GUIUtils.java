@@ -14,22 +14,49 @@ public final class GUIUtils
 {
 	private static String[] availableFontFamilyNames;
 
-	public static void setVerticalLayout(Container host, Component ... components)
+	public static void setVerticalLayout(Container host)
+	{
+		setVerticalLayout(host, true, true);
+	}
+
+	public static void setVerticalLayout(Container host, boolean gap, boolean containerGap)
+	{
+		setGroupLayout(host, gap, containerGap, true);
+	}
+
+	public static void setHorizontalLayout(Container host)
+	{
+		setHorizontalLayout(host, true, true);
+	}
+
+	public static void setHorizontalLayout(Container host, boolean gap, boolean containerGap)
+	{
+		setGroupLayout(host, gap, containerGap, false);
+	}
+
+	private static void setGroupLayout(Container host, boolean gap, boolean containerGap, boolean vertical)
 	{
 		GroupLayout gl = new GroupLayout(host);
 		host.setLayout(gl);
-		gl.setAutoCreateContainerGaps(true);
-		gl.setAutoCreateGaps(true);
-
+		gl.setAutoCreateGaps(gap);
+		gl.setAutoCreateContainerGaps(containerGap);
 		SequentialGroup sg = gl.createSequentialGroup();
-		ParallelGroup pg = gl.createParallelGroup(Alignment.LEADING);
-		for (Component c : components)
+		ParallelGroup pg = gl.createParallelGroup(vertical ? Alignment.LEADING : Alignment.BASELINE);
+		for (Component c : host.getComponents())
 		{
 			sg = sg.addComponent(c);
 			pg = pg.addComponent(c, 0, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE);
 		}
-		gl.setVerticalGroup(sg);
-		gl.setHorizontalGroup(pg);
+		if (vertical)
+		{
+			gl.setVerticalGroup(sg);
+			gl.setHorizontalGroup(pg);
+		}
+		else
+		{
+			gl.setVerticalGroup(pg);
+			gl.setHorizontalGroup(sg);
+		}
 	}
 
 	public static void setLookAndFeelToSystem()

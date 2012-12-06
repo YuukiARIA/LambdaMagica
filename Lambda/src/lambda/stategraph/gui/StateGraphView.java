@@ -6,11 +6,13 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 
 import lambda.ast.Lambda;
+import lambda.gui.util.GUIUtils;
 import lambda.stategraph.StateSearcher;
 import lambda.stategraph.event.SearchEndListener;
 
@@ -75,12 +77,18 @@ public class StateGraphView extends JPanel
 			}
 		});
 
+		JPanel p1 = new JPanel();
+		p1.add(buttonStart);
+		p1.add(buttonStop);
+		JPanel p2 = new JPanel();
+		p2.add(new JLabel("max depth:"));
+		p2.add(spinnerMaxDepth);
+		p2.add(checkAntialias);
+		p2.add(checkCurve);
 		JPanel buttonPanel = new JPanel();
-		buttonPanel.add(buttonStart);
-		buttonPanel.add(buttonStop);
-		buttonPanel.add(spinnerMaxDepth);
-		buttonPanel.add(checkAntialias);
-		buttonPanel.add(checkCurve);
+		buttonPanel.add(p1);
+		buttonPanel.add(p2);
+		GUIUtils.setVerticalLayout(buttonPanel, false, false);
 		add(buttonPanel, BorderLayout.SOUTH);
 	}
 

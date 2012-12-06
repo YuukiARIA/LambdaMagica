@@ -2,7 +2,6 @@ package lambda.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -205,8 +204,7 @@ public class MainFrame extends JFrame
 		});
 		buttonPanel.add(buttonClearMacros);
 
-		GUIUtils.setVerticalLayout(buttonPanel,
-			pAuto, pReduction, pPrinting, buttonLaTeX, buttonClear, buttonClearMacros);
+		GUIUtils.setVerticalLayout(buttonPanel);
 
 		tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("General", buttonPanel);
@@ -271,7 +269,7 @@ public class MainFrame extends JFrame
 		});
 		sp.setDividerLocation(Short.MAX_VALUE);
 		add(sp);
-		setSize(700, 500);
+		setSize(700, 600);
 
 		setupAcceleration();
 
@@ -287,14 +285,12 @@ public class MainFrame extends JFrame
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				boolean b = checkAuto.isSelected();
-				checkTraceInAuto.setEnabled(b);
-				spinnerMaxSteps.setEnabled(b);
+				updateAutoModePanel();
 			}
 		});
 		checkTraceInAuto = createOptionCheckBox(Environment.KEY_TRACE, "show trace in auto mode");
 
-		JPanel stepPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JPanel stepPanel = new JPanel();
 		spinnerMaxSteps = new JSpinner(new SpinnerNumberModel(env.getInt(Environment.KEY_CONTINUE_STEPS, 100), 0, 1000, 1));
 		spinnerMaxSteps.addChangeListener(new ChangeListener()
 		{
@@ -305,6 +301,7 @@ public class MainFrame extends JFrame
 		});
 		stepPanel.add(new JLabel("step limit:"));
 		stepPanel.add(spinnerMaxSteps);
+		GUIUtils.setHorizontalLayout(stepPanel, true, true);
 
 		buttonResume = new JButton("continue");
 		buttonResume.setEnabled(false);
@@ -335,8 +332,16 @@ public class MainFrame extends JFrame
 		p.add(stepPanel);
 		p.add(buttonResume);
 		p.add(buttonStop);
-		GUIUtils.setVerticalLayout(p, checkAuto, checkTraceInAuto, stepPanel, buttonResume, buttonStop);
+		GUIUtils.setVerticalLayout(p);
+		updateAutoModePanel();
 		return p;
+	}
+
+	private void updateAutoModePanel()
+	{
+		boolean b = checkAuto.isSelected();
+		checkTraceInAuto.setEnabled(b);
+		spinnerMaxSteps.setEnabled(b);
 	}
 
 	private void setupAcceleration()
