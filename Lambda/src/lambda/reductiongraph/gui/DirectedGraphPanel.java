@@ -107,7 +107,7 @@ class Edge
 }
 
 @SuppressWarnings("serial")
-class DirectedGraphPanel extends JPanel
+public class DirectedGraphPanel extends JPanel
 {
 	private static class NodeLocationComparator implements Comparator<GraphNode>
 	{
