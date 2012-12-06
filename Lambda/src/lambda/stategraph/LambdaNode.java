@@ -3,6 +3,7 @@ package lambda.stategraph;
 import java.util.Collections;
 import java.util.List;
 
+import lambda.Environment;
 import lambda.ast.IRedexNode;
 import lambda.ast.Lambda;
 import lambda.reduction.RedexFinder;
@@ -22,7 +23,7 @@ public class LambdaNode implements IStateNode
 		this.depth = depth;
 		this.lambda = lambda;
 		data = LambdaSerializer.serialize(lambda);
-		redexes = RedexFinder.getRedexList(lambda);
+		redexes = RedexFinder.getRedexList(lambda, Environment.getEnvironment().getBoolean(Environment.KEY_ETA_REDUCTION));
 	}
 
 	public short[] getData()

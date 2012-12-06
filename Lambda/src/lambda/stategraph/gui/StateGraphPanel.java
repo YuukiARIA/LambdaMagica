@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -37,21 +38,77 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
+class Multiset<T> implements Iterable<Map.Entry<T, Integer>>
+{
+	private Map<T, Integer> elements = new HashMap<T, Integer>();
+
+	public boolean add(T e)
+	{
+		boolean ret = false;
+		Integer n = elements.get(e);
+		if (n == null)
+		{
+			n = 0;
+			ret = true;
+		}
+		elements.put(e, n + 1);
+		return ret;
+	}
+
+	public void clear()
+	{
+		elements.clear();
+	}
+
+	public boolean contains(Object o)
+	{
+		return elements.containsKey(o);
+	}
+
+	public boolean isEmpty()
+	{
+		return elements.isEmpty();
+	}
+
+	public int size()
+	{
+		return elements.size();
+	}
+
+	public int getMultiplicity(T e)
+	{
+		Integer n = elements.get(e);
+		return n != null ? n : 0;
+	}
+
+	public Set<T> getKeySet()
+	{
+		return elements.keySet();
+	}
+
+	public Iterator<Map.Entry<T, Integer>> iterator()
+	{
+		return elements.entrySet().iterator();
+	}
+}
+
+class Edge
+{
+	public final GraphNode p;
+	public final GraphNode q;
+	public final int multiplicity;
+
+	public Edge(GraphNode p, GraphNode q, int multiplicity)
+	{
+		this.p = p;
+		this.q = q;
+		this.multiplicity = multiplicity;
+	}
+}
+
 @SuppressWarnings("serial")
 public class StateGraphPanel extends JPanel
 {
-	private static class Edge
-	{
-		public final GraphNode p;
-		public final GraphNode q;
-
-		public Edge(GraphNode p, GraphNode q)
-		{
-			this.p = p;
-			this.q = q;
-		}
-	}
-
 	private static class NodeLocationComparator implements Comparator<GraphNode>
 	{
 		private static NodeLocationComparator instance;
@@ -82,7 +139,7 @@ public class StateGraphPanel extends JPanel
 	private List<GraphNode> nodes = new LinkedList<GraphNode>();
 	private Map<Integer, Set<GraphNode>> depthSlicedNodes = new HashMap<Integer, Set<GraphNode>>();
 	private int maxDepth;
-	private Map<GraphNode, Set<GraphNode>> edges = new HashMap<GraphNode, Set<GraphNode>>();
+	private Map<GraphNode, Multiset<GraphNode>> edges = new HashMap<GraphNode, Multiset<GraphNode>>();
 	private List<Edge> edgeLines = new ArrayList<Edge>();
 	private List<Edge> inEdgeLines = new ArrayList<Edge>();
 	private List<Edge> outEdgeLines = new ArrayList<Edge>();
@@ -298,10 +355,10 @@ public class StateGraphPanel extends JPanel
 	{
 		synchronized (lockEdges)
 		{
-			Set<GraphNode> sinks = edges.get(source);
+			Multiset<GraphNode> sinks = edges.get(source);
 			if (sinks == null)
 			{
-				sinks = new HashSet<GraphNode>();
+				sinks = new Multiset<GraphNode>();
 				edges.put(source, sinks);
 			}
 			sinks.add(sink);
@@ -393,14 +450,14 @@ public class StateGraphPanel extends JPanel
 			}
 			set.add(n1);
 
-			Set<GraphNode> nextNodes;
+			Multiset<GraphNode> nextNodes;
 			synchronized (lockEdges)
 			{
 				nextNodes = edges.get(n1);
 			}
 			if (nextNodes != null)
 			{
-				for (GraphNode n2 : nextNodes)
+				for (GraphNode n2 : nextNodes.getKeySet())
 				{
 					if (!visited.contains(n2))
 					{
@@ -438,12 +495,14 @@ public class StateGraphPanel extends JPanel
 			edgeLines.clear();
 			outEdgeLines.clear();
 			inEdgeLines.clear();
-			for (Map.Entry<GraphNode, Set<GraphNode>> e : edges.entrySet())
+			for (Map.Entry<GraphNode, Multiset<GraphNode>> e : edges.entrySet())
 			{
 				GraphNode src = e.getKey();
-				for (GraphNode sink : e.getValue())
+				for (Map.Entry<GraphNode, Integer> e1 : e.getValue())
 				{
-					Edge edgeLine = new Edge(src, sink);
+					GraphNode sink = e1.getKey();
+					int multiplicity = e1.getValue();
+					Edge edgeLine = new Edge(src, sink, multiplicity);
 					if (src == hn)
 					{
 						outEdgeLines.add(edgeLine);
@@ -571,7 +630,7 @@ public class StateGraphPanel extends JPanel
 			{
 				if (drawCurve)
 				{
-					drawCurveEdge(g, p.getX(), p.getY(), q.getX(), q.getY());
+					drawCurveEdge(g, p.getX(), p.getY(), q.getX(), q.getY(), edge.multiplicity);
 				}
 				else
 				{
@@ -581,27 +640,31 @@ public class StateGraphPanel extends JPanel
 		}
 	}
 
-	private static void drawCurveEdge(Graphics2D g, int x0, int y0, int x1, int y1)
+	private static void drawCurveEdge(Graphics2D g, int x0, int y0, int x1, int y1, int m)
 	{
-		double a = Math.atan2(y1 - y0, x1 - x0) - Math.PI / 2;
-		int l = 30;
+		final double a = Math.atan2(y1 - y0, x1 - x0) - Math.PI / 2;
+		final int r = GraphNode.R + 2;
 
-		double cx = (x0 + x1) / 2.0 + l * Math.cos(a);
-		double cy = (y0 + y1) / 2.0 + l * Math.sin(a);
-		double as = Math.atan2(cy - y0, cx - x0);
-		double at = Math.atan2(y1 - cy, x1 - cx);
-		int r = GraphNode.R + 1;
-		double rcosAs = r * Math.cos(as);
-		double rsinAs = r * Math.sin(as);
-		double rcosAt = r * Math.cos(at);
-		double rsinAt = r * Math.sin(at);
-		double sX = x0 + rcosAs;
-		double sY = y0 + rsinAs;
-		double tX = x1 - rcosAt;
-		double tY = y1 - rsinAt;
-		QuadCurve2D curve = new QuadCurve2D.Double(sX, sY, cx, cy, tX, tY);
-		g.draw(curve);
-		drawTriangle(g, tX, tY, at);
+		for (int i = 0; i < m; i++)
+		{
+			int l = 30 * (i + 1);
+
+			double cx = (x0 + x1) / 2.0 + l * Math.cos(a);
+			double cy = (y0 + y1) / 2.0 + l * Math.sin(a);
+			double as = Math.atan2(cy - y0, cx - x0);
+			double at = Math.atan2(y1 - cy, x1 - cx);
+			double rcosAs = r * Math.cos(as);
+			double rsinAs = r * Math.sin(as);
+			double rcosAt = r * Math.cos(at);
+			double rsinAt = r * Math.sin(at);
+			double sX = x0 + rcosAs;
+			double sY = y0 + rsinAs;
+			double tX = x1 - rcosAt;
+			double tY = y1 - rsinAt;
+			QuadCurve2D curve = new QuadCurve2D.Double(sX, sY, cx, cy, tX, tY);
+			g.draw(curve);
+			drawTriangle(g, tX, tY, at);
+		}
 	}
 
 	private static void drawStraightEdge(Graphics2D g, int x0, int y0, int x1, int y1)
@@ -609,7 +672,7 @@ public class StateGraphPanel extends JPanel
 		double a = Math.atan2(y1 - y0, x1 - x0);
 		double cosA = Math.cos(a), sinA = Math.sin(a);
 
-		double r = 10;
+		double r = GraphNode.R + 2;
 		double sX = x0 + r * cosA;
 		double sY = y0 + r * sinA;
 		double tX = x1 - r * cosA;
@@ -620,7 +683,7 @@ public class StateGraphPanel extends JPanel
 
 	private static void drawSelfCyclicEdge(Graphics2D g, int x, int y)
 	{
-		int r = GraphNode.R;
+		int r = GraphNode.R + 2;
 		double x1 = x;
 		double y1 = y - r;
 		double cx1 = x + 4 * r;
