@@ -1,4 +1,4 @@
-package lambda.stategraph;
+package lambda.reductiongraph;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,15 +15,15 @@ import lambda.ast.Lambda;
 import lambda.macro.MacroDefinition;
 import lambda.reduction.Reducer;
 import lambda.reduction.Reducer.Result;
-import lambda.stategraph.event.SearchEndListener;
-import lambda.stategraph.gui.GraphNode;
-import lambda.stategraph.gui.StateGraphPanel;
+import lambda.reductiongraph.event.SearchEndListener;
+import lambda.reductiongraph.gui.GraphNode;
+import lambda.reductiongraph.gui.DirectedGraphPanel;
 
 public class StateSearcher
 {
 	private static final MacroDefinition EMPTY_MACRO_DEF = new MacroDefinition();
 
-	private StateGraphPanel graphPanel;
+	private DirectedGraphPanel graphPanel;
 	private Lambda lambda;
 	private int maxDepth;
 	private Map<IStateNode, GraphNode> nodeMapping = new HashMap<IStateNode, GraphNode>();
@@ -32,7 +32,7 @@ public class StateSearcher
 	private EventListenerList listeners = new EventListenerList();
 	private Thread thread;
 
-	public StateSearcher(StateGraphPanel graphPanel, Lambda lambda, int maxDepth)
+	public StateSearcher(DirectedGraphPanel graphPanel, Lambda lambda, int maxDepth)
 	{
 		this.graphPanel = graphPanel;
 		this.lambda = lambda;

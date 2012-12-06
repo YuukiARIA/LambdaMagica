@@ -1,4 +1,4 @@
-package lambda.stategraph.gui;
+package lambda.reductiongraph.gui;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -107,7 +107,7 @@ class Edge
 }
 
 @SuppressWarnings("serial")
-public class StateGraphPanel extends JPanel
+class DirectedGraphPanel extends JPanel
 {
 	private static class NodeLocationComparator implements Comparator<GraphNode>
 	{
@@ -152,7 +152,7 @@ public class StateGraphPanel extends JPanel
 	private boolean animationSuspended;
 	private double scale = 1.0;
 
-	public StateGraphPanel()
+	public DirectedGraphPanel()
 	{
 		MouseAdapter m = new MouseAdapter()
 		{

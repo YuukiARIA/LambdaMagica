@@ -1,4 +1,4 @@
-package lambda.stategraph.gui;
+package lambda.reductiongraph.gui;
 
 import java.awt.Graphics;
 import java.awt.Toolkit;
@@ -16,12 +16,12 @@ import javax.swing.KeyStroke;
 @SuppressWarnings("serial")
 public class StateFrame extends JFrame
 {
-	private StateGraphPanel gp;
+	private DirectedGraphPanel gp;
 
 	public StateFrame()
 	{
 		setSize(600, 600);
-		gp = new StateGraphPanel();
+		gp = new DirectedGraphPanel();
 		add(gp);
 
 

@@ -20,11 +20,11 @@ import lambda.macro.MacroDefinition;
 import lambda.reduction.RedexFinder;
 import lambda.reduction.Reducer;
 import lambda.reduction.Reducer.Result;
-import lambda.stategraph.IStateNode;
-import lambda.stategraph.InfinityNode;
-import lambda.stategraph.LambdaNode;
-import lambda.stategraph.gui.GraphNode;
-import lambda.stategraph.gui.StateFrame;
+import lambda.reductiongraph.IStateNode;
+import lambda.reductiongraph.InfinityNode;
+import lambda.reductiongraph.LambdaNode;
+import lambda.reductiongraph.gui.GraphNode;
+import lambda.reductiongraph.gui.StateFrame;
 
 public class NDMain
 {

@@ -1,4 +1,4 @@
-package lambda.stategraph.event;
+package lambda.reductiongraph.event;
 
 import java.util.EventListener;
 

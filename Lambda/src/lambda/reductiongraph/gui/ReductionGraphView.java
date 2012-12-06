@@ -1,4 +1,4 @@
-package lambda.stategraph.gui;
+package lambda.reductiongraph.gui;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -13,25 +13,25 @@ import javax.swing.SpinnerNumberModel;
 
 import lambda.ast.Lambda;
 import lambda.gui.util.GUIUtils;
-import lambda.stategraph.StateSearcher;
-import lambda.stategraph.event.SearchEndListener;
+import lambda.reductiongraph.StateSearcher;
+import lambda.reductiongraph.event.SearchEndListener;
 
 
 @SuppressWarnings("serial")
-public class StateGraphView extends JPanel
+public class ReductionGraphView extends JPanel
 {
-	private StateGraphPanel graphPanel;
+	private DirectedGraphPanel graphPanel;
 	private JButton buttonStart;
 	private JButton buttonStop;
 	private JSpinner spinnerMaxDepth;
 
 	private StateSearcher searcher;
 
-	public StateGraphView()
+	public ReductionGraphView()
 	{
 		setLayout(new BorderLayout());
 
-		graphPanel = new StateGraphPanel();
+		graphPanel = new DirectedGraphPanel();
 		add(graphPanel, BorderLayout.CENTER);
 
 		buttonStart = new JButton("start");

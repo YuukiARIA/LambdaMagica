@@ -1,4 +1,4 @@
-package lambda.stategraph.gui;
+package lambda.reductiongraph.gui;
 
 import java.awt.Color;
 import java.awt.Graphics;

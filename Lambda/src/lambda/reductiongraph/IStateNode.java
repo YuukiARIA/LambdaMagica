@@ -1,4 +1,4 @@
-package lambda.stategraph;
+package lambda.reductiongraph;
 
 public interface IStateNode
 {

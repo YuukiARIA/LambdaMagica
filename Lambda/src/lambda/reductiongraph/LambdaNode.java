@@ -1,4 +1,4 @@
-package lambda.stategraph;
+package lambda.reductiongraph;
 
 import java.util.Collections;
 import java.util.List;

@@ -58,8 +58,8 @@ import lambda.gui.util.GUIUtils;
 import lambda.macro.MacroDefinition;
 import lambda.reduction.RedexFinder;
 import lambda.reduction.Reducer.Result;
+import lambda.reductiongraph.gui.ReductionGraphView;
 import lambda.reduction.ReductionRule;
-import lambda.stategraph.gui.StateGraphView;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
 import util.nullable.NullableBool;
@@ -226,7 +226,7 @@ public class MainFrame extends JFrame
 		macroView.setFont(env.getGUIFont());
 		tabbedPane.addTab("Macros", macroView);
 
-		final StateGraphView sgView = new StateGraphView();
+		final ReductionGraphView sgView = new ReductionGraphView();
 		sgView.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
@@ -251,7 +251,7 @@ public class MainFrame extends JFrame
 				}
 			}
 		});
-		tabbedPane.addTab("StateGraph", sgView);
+		tabbedPane.addTab("ReductionGraph", sgView);
 
 		final JSplitPane sp = new FlatSplitPane();
 		sp.setContinuousLayout(true);
