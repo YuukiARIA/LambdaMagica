@@ -454,15 +454,15 @@ public class StateGraphPanel extends JPanel
 			synchronized (lockEdges)
 			{
 				nextNodes = edges.get(n1);
-			}
-			if (nextNodes != null)
-			{
-				for (GraphNode n2 : nextNodes.getKeySet())
+				if (nextNodes != null)
 				{
-					if (!visited.contains(n2))
+					for (GraphNode n2 : nextNodes.getKeySet())
 					{
-						n2.setDepth(Math.min(n2.getDepth(), n1.getDepth() + 1));
-						queue.add(n2);
+						if (!visited.contains(n2))
+						{
+							n2.setDepth(Math.min(n2.getDepth(), n1.getDepth() + 1));
+							queue.add(n2);
+						}
 					}
 				}
 			}
