@@ -170,7 +170,6 @@ public class StateSearcher
 			}
 			catch (InterruptedException e)
 			{
-				e.printStackTrace();
 			}
 			finally
 			{

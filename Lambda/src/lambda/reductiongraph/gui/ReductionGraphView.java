@@ -16,7 +16,6 @@ import lambda.gui.util.GUIUtils;
 import lambda.reductiongraph.StateSearcher;
 import lambda.reductiongraph.event.SearchEndListener;
 
-
 @SuppressWarnings("serial")
 public class ReductionGraphView extends JPanel
 {
@@ -77,14 +76,24 @@ public class ReductionGraphView extends JPanel
 			}
 		});
 
+		final JCheckBox checkMultiEdge = new JCheckBox("multi-edge");
+		checkMultiEdge.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				graphPanel.setMultipleEdges(checkMultiEdge.isSelected());
+			}
+		});
+
 		JPanel p1 = new JPanel();
 		p1.add(buttonStart);
 		p1.add(buttonStop);
+		p1.add(new JLabel("max depth:"));
+		p1.add(spinnerMaxDepth);
 		JPanel p2 = new JPanel();
-		p2.add(new JLabel("max depth:"));
-		p2.add(spinnerMaxDepth);
 		p2.add(checkAntialias);
 		p2.add(checkCurve);
+		p2.add(checkMultiEdge);
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.add(p1);
 		buttonPanel.add(p2);

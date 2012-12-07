@@ -149,6 +149,7 @@ public class DirectedGraphPanel extends JPanel
 	private Point translation = new Point();
 	private boolean antialias;
 	private boolean drawCurve;
+	private boolean multipleEdges;
 	private boolean animationSuspended;
 	private double scale = 1.0;
 
@@ -248,6 +249,12 @@ public class DirectedGraphPanel extends JPanel
 	public void setDrawCurve(boolean b)
 	{
 		drawCurve = b;
+		resumeAnimation();
+	}
+
+	public void setMultipleEdges(boolean b)
+	{
+		multipleEdges = b;
 		resumeAnimation();
 	}
 
@@ -610,6 +617,12 @@ public class DirectedGraphPanel extends JPanel
 		}
 
 		g.translate(-trX, -trY);
+
+		g.setColor(Color.GRAY);
+		synchronized (nodes)
+		{
+			g.drawString("Nodes = " + nodes.size(), 5, 20);
+		}
 	}
 
 	protected void paintComponent(Graphics g)
@@ -630,7 +643,8 @@ public class DirectedGraphPanel extends JPanel
 			{
 				if (drawCurve)
 				{
-					drawCurveEdge(g, p.getX(), p.getY(), q.getX(), q.getY(), edge.multiplicity);
+					int m = multipleEdges ? edge.multiplicity : 1;
+					drawCurveEdge(g, p.getX(), p.getY(), q.getX(), q.getY(), m);
 				}
 				else
 				{
