@@ -61,6 +61,7 @@ import lambda.macro.MacroDefinition;
 import lambda.reduction.RedexFinder;
 import lambda.reduction.Reducer.Result;
 import lambda.reduction.ReductionRule;
+import lambda.reductiongraph.event.SearchEndListener;
 import lambda.reductiongraph.gui.ReductionGraphView;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
@@ -230,8 +231,8 @@ public class MainFrame extends JFrame
 		macroView.setFont(env.getGUIFont());
 		tabbedPane.addTab("Macros", macroView);
 
-		final ReductionGraphView sgView = new ReductionGraphView();
-		sgView.addActionListener(new ActionListener()
+		final ReductionGraphView rgView = new ReductionGraphView();
+		rgView.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
@@ -246,7 +247,15 @@ public class MainFrame extends JFrame
 						Lambda lambda = Lambda.parse(s);
 						MacroExpander expander = new MacroExpander(macros);
 						lambda = expander.expand(lambda, true);
-						sgView.startSearch(lambda);
+						println("- Start: " + lambda);
+						if (expander.isSucceeded())
+						{
+							rgView.startSearch(lambda);
+						}
+						else
+						{
+							println("- Input contains undefined macro.");
+						}
 					}
 					catch (ParserException e1)
 					{
@@ -255,7 +264,14 @@ public class MainFrame extends JFrame
 				}
 			}
 		});
-		tabbedPane.addTab("ReductionGraph", sgView);
+		rgView.addSearchEndListener(new SearchEndListener()
+		{
+			public void searchEnded()
+			{
+				println("- End: count = " + rgView.getStoredNodeCount());
+			}
+		});
+		tabbedPane.addTab("ReductionGraph", rgView);
 
 		final JSplitPane sp = new FlatSplitPane();
 		sp.setContinuousLayout(true);

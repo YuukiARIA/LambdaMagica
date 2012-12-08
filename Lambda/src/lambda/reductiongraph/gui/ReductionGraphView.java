@@ -25,6 +25,7 @@ public class ReductionGraphView extends JPanel
 	private JSpinner spinnerMaxDepth;
 
 	private StateSearcher searcher;
+	private int storedNodeCount;
 
 	public ReductionGraphView()
 	{
@@ -101,6 +102,11 @@ public class ReductionGraphView extends JPanel
 		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
+	public int getStoredNodeCount()
+	{
+		return storedNodeCount;
+	}
+
 	public void setStartButtonEnabled(boolean b)
 	{
 		buttonStart.setEnabled(b);
@@ -124,6 +130,8 @@ public class ReductionGraphView extends JPanel
 		{
 			public void searchEnded()
 			{
+				storedNodeCount = searcher.getStateCount();
+				dispathSearchEndEvent();
 				buttonStart.setEnabled(true);
 				buttonStop.setEnabled(false);
 				searcher = null;
@@ -148,6 +156,24 @@ public class ReductionGraphView extends JPanel
 		for (ActionListener l : listenerList.getListeners(ActionListener.class))
 		{
 			l.actionPerformed(event);
+		}
+	}
+
+	public void addSearchEndListener(SearchEndListener l)
+	{
+		listenerList.add(SearchEndListener.class, l);
+	}
+
+	public void removeSearchEndListener(SearchEndListener l)
+	{
+		listenerList.remove(SearchEndListener.class, l);
+	}
+
+	private void dispathSearchEndEvent()
+	{
+		for (SearchEndListener l : listenerList.getListeners(SearchEndListener.class))
+		{
+			l.searchEnded();
 		}
 	}
 }

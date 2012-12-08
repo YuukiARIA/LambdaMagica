@@ -6,6 +6,7 @@ public class MacroExpander implements Lambda.VisitorR<Lambda>
 {
 	private MacroDefinition macroDef;
 	private boolean recursive;
+	private boolean unexpanded;
 
 	public MacroExpander(MacroDefinition macroDef)
 	{
@@ -20,7 +21,13 @@ public class MacroExpander implements Lambda.VisitorR<Lambda>
 	public Lambda expand(Lambda lambda, boolean recursive)
 	{
 		this.recursive = recursive;
+		this.unexpanded = false;
 		return lambda.accept(this);
+	}
+
+	public boolean isSucceeded()
+	{
+		return !unexpanded;
 	}
 
 	public Lambda visit(ASTAbstract abs)
@@ -49,6 +56,7 @@ public class MacroExpander implements Lambda.VisitorR<Lambda>
 			return recursive ? l.accept(this) : l;
 		}
 		System.out.println("- <" + macro.name + "> is undefined");
+		unexpanded = true;
 		return macro;
 	}
 }
