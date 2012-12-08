@@ -1,13 +1,15 @@
 package lambda.gui;
 
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
-import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 
 import lambda.Environment;
 import lambda.gui.fontdialog.FontDialog;
@@ -16,15 +18,31 @@ import lambda.gui.fontdialog.event.FontUpdateListener;
 @SuppressWarnings("serial")
 public class MainMenu extends JMenuBar
 {
-	private JFrame owner;
+	private MainFrame owner;
 
-	public MainMenu(JFrame ownerFrame)
+	public MainMenu(MainFrame ownerFrame)
 	{
 		owner = ownerFrame;
 		setBorder(null);
 
+		final int MOD_CTRL = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
 		JMenu menuFile = new JMenu("File");
 		add(menuFile);
+
+		JMenuItem itemLoad = new JMenuItem("Load Macros");
+		itemLoad.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, MOD_CTRL));
+		itemLoad.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				owner.loadMacroFile();
+			}
+		});
+		menuFile.add(itemLoad);
+
+		menuFile.addSeparator();
+
 		JMenuItem itemExit = new JMenuItem("Exit");
 		itemExit.addActionListener(new ActionListener()
 		{

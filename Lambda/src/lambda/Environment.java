@@ -31,6 +31,7 @@ public class Environment
 	public static final String KEY_GUI_FONT_SIZE = "gui.fontsize";
 	public static final String KEY_GUI_FONT_ADDITION = "gui.ui.font.addition";
 	public static final String KEY_PRINT_BETA_ETA = "print_beta_eta";
+	public static final String KEY_LAST_DIRECTORY = "gui.load.lastdir";
 
 	private static Environment instance;
 
@@ -50,6 +51,7 @@ public class Environment
 		set(KEY_GUI_FONT_SIZE, 12);
 		set(KEY_GUI_FONT_ADDITION, 0);
 		set(KEY_PRINT_BETA_ETA, true);
+		set(KEY_LAST_DIRECTORY, ".");
 	}
 
 	public String get(String key, String defval)

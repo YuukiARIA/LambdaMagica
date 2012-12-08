@@ -29,6 +29,7 @@ import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -55,11 +56,12 @@ import lambda.ast.parser.ParserException;
 import lambda.conversion.Converter;
 import lambda.gui.macroview.MacroDefinitionView;
 import lambda.gui.util.GUIUtils;
+import lambda.gui.util.LMFileFilter;
 import lambda.macro.MacroDefinition;
 import lambda.reduction.RedexFinder;
 import lambda.reduction.Reducer.Result;
-import lambda.reductiongraph.gui.ReductionGraphView;
 import lambda.reduction.ReductionRule;
+import lambda.reductiongraph.gui.ReductionGraphView;
 import lambda.system.CommandDelegate;
 import lambda.system.CommandProcessor;
 import util.nullable.NullableBool;
@@ -96,6 +98,8 @@ public class MainFrame extends JFrame
 	private JTextArea output;
 	private JTextArea systemOutput;
 	private MacroDefinitionView macroView;
+
+	private JFileChooser fileChooser;
 
 	private Environment env = Environment.getEnvironment();
 	private MacroDefinition macros = new MacroDefinition();
@@ -274,6 +278,26 @@ public class MainFrame extends JFrame
 		setupAcceleration();
 
 		initializeCommands();
+	}
+
+	public void loadMacroFile()
+	{
+		if (fileChooser == null)
+		{
+			File cd = new File(env.get(Environment.KEY_LAST_DIRECTORY, "."));
+			fileChooser = new JFileChooser(cd);
+			fileChooser.setDialogTitle("Load Macro File");
+			fileChooser.setMultiSelectionEnabled(false);
+			fileChooser.setAcceptAllFileFilterUsed(true);
+			fileChooser.setFileFilter(LMFileFilter.getInstance());
+		}
+		int ret = fileChooser.showOpenDialog(this);
+		if (ret == JFileChooser.APPROVE_OPTION)
+		{
+			File file = fileChooser.getSelectedFile();
+			loadFile(file);
+		}
+		env.set(Environment.KEY_LAST_DIRECTORY, fileChooser.getCurrentDirectory().getPath());
 	}
 
 	private JPanel createAutoModeConfigurationPanel()
@@ -766,19 +790,14 @@ public class MainFrame extends JFrame
 		}
 	}
 
-	private void loadFile(String path)
+	private void loadFile(File file)
 	{
-		if (!path.endsWith(".lm.txt"))
-		{
-			path = path + ".lm.txt";
-		}
-
 		try
 		{
 			BufferedReader reader = new BufferedReader(
-				new InputStreamReader(new FileInputStream(path)));
+				new InputStreamReader(new FileInputStream(file)));
 
-			println("- load '" + path + "'");
+			println("- load '" + file.getName() + "'");
 			String line;
 			while ((line = reader.readLine()) != null)
 			{
@@ -792,12 +811,22 @@ public class MainFrame extends JFrame
 		}
 		catch (FileNotFoundException e)
 		{
-			println("- cannot open file \"" + path + "\"");
+			println("- cannot open file \"" + file.getPath() + "\"");
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
+	}
+
+	private void loadFile(String path)
+	{
+		File file = new File(path);
+		if (!file.exists() && !path.endsWith(".lm.txt"))
+		{
+			file = new File(path + ".lm.txt");
+		}
+		loadFile(file);
 	}
 
 	private void clearMacros()
