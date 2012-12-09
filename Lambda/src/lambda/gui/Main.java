@@ -75,6 +75,8 @@ public class Main
 		GUIUtils.preloadFontNames();
 		GUIUtils.setLookAndFeelToSystem();
 
+		updateUIFontAddition();
+
 		mainFrame = new MainFrame();
 		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		mainFrame.setLocationRelativeTo(null);

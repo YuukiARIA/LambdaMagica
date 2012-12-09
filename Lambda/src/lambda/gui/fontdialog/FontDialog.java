@@ -41,6 +41,10 @@ public class FontDialog extends JDialog
 		setTitle("Font Setting");
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
+		JPanel editorFontPanel = new JPanel();
+		editorFontPanel.setBorder(BorderFactory.createTitledBorder("Editor Font"));
+		JLabel label1 = new JLabel("Font face:");
+		editorFontPanel.add(label1);
 		familyNames = new JComboBox();
 		Dimension dim = familyNames.getPreferredSize();
 		dim.width = 160;
@@ -54,13 +58,15 @@ public class FontDialog extends JDialog
 				dispatchFontFamilyChangeEvent();
 			}
 		});
-		add(familyNames);
+		editorFontPanel.add(familyNames);
 		for (String name : GUIUtils.getAvailableFontFamilyNames())
 		{
 			familyNames.addItem(name);
 		}
 		familyNames.setSelectedItem(initSelectedName);
 
+		JLabel label2 = new JLabel("Font size:");
+		editorFontPanel.add(label2);
 		fontSize = new JSpinner(new SpinnerNumberModel(12, 5, 120, 1));
 		fontSize.addChangeListener(new ChangeListener()
 		{
@@ -69,7 +75,34 @@ public class FontDialog extends JDialog
 				dispatchFontSizeChangeEvent();
 			}
 		});
-		add(fontSize);
+		editorFontPanel.add(fontSize);
+
+		{
+			GroupLayout gl = new GroupLayout(editorFontPanel);
+			editorFontPanel.setLayout(gl);
+			gl.setAutoCreateContainerGaps(true);
+			gl.setAutoCreateGaps(true);
+			gl.setHorizontalGroup(gl.createParallelGroup()
+				.addGroup(gl.createSequentialGroup()
+					.addComponent(label1)
+					.addComponent(familyNames)
+				)
+				.addGroup(gl.createSequentialGroup()
+					.addComponent(label2)
+					.addComponent(fontSize)
+				)
+			);
+			gl.setVerticalGroup(gl.createSequentialGroup()
+				.addGroup(gl.createParallelGroup(Alignment.BASELINE)
+					.addComponent(label1)
+					.addComponent(familyNames)
+				)
+				.addGroup(gl.createParallelGroup(Alignment.BASELINE)
+					.addComponent(label2)
+					.addComponent(fontSize)
+				)
+			);
+		}
 
 		JPanel panelAddition = new JPanel();
 		panelAddition.setBorder(BorderFactory.createTitledBorder("UI Font Size"));
@@ -82,6 +115,7 @@ public class FontDialog extends JDialog
 			{
 				setFontAddition(getFontAddition() + 1);
 				dispatchUIFontAdditionChangeEvent();
+				pack();
 			}
 		});
 		panelAddition.add(buttonInc);
@@ -92,6 +126,7 @@ public class FontDialog extends JDialog
 			{
 				setFontAddition(getFontAddition() - 1);
 				dispatchUIFontAdditionChangeEvent();
+				pack();
 			}
 		});
 		panelAddition.add(buttonDec);
@@ -124,10 +159,7 @@ public class FontDialog extends JDialog
 		gl.setAutoCreateGaps(true);
 		gl.setHorizontalGroup(gl.createParallelGroup(Alignment.TRAILING)
 			.addGroup(gl.createParallelGroup()
-				.addGroup(gl.createSequentialGroup()
-					.addComponent(familyNames)
-					.addComponent(fontSize)
-				)
+				.addComponent(editorFontPanel)
 				.addComponent(panelAddition)
 			)
 			.addGroup(gl.createSequentialGroup()
@@ -136,10 +168,7 @@ public class FontDialog extends JDialog
 			)
 		);
 		gl.setVerticalGroup(gl.createSequentialGroup()
-			.addGroup(gl.createParallelGroup(Alignment.BASELINE)
-				.addComponent(familyNames)
-				.addComponent(fontSize)
-			)
+			.addComponent(editorFontPanel)
 			.addComponent(panelAddition)
 			.addGroup(gl.createParallelGroup(Alignment.BASELINE)
 				.addComponent(buttonOK)
