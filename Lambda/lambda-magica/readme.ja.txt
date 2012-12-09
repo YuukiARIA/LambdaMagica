@@ -1,6 +1,6 @@
 ﻿
 
-                  Lambda * Magica      ver 3.80
+                  Lambda * Magica      ver 3.81
 
          Untyped Lambda Calculus Interpreter for Education
 
@@ -123,6 +123,11 @@
 
 
 4. バージョン情報
+
+- ver 3.81 (Descember 10, 2012)
+  簡約基の識別が正しくない問題が一部未処理だったのを修正
+  メニュー項目にマクロ読み込みを追加
+  簡約グラフに多重エッジ描画機能を追加
 
 - ver 3.80 (Descember 6, 2012)
   簡約基の識別が正しくなかった不具合を修正

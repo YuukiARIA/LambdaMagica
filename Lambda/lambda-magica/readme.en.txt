@@ -1,6 +1,6 @@
 ﻿
 
-                  Lambda * Magica      ver 3.80
+                  Lambda * Magica      ver 3.81
 
          Untyped Lambda Calculus Interpreter for Education
 
@@ -131,6 +131,11 @@
 
 
 4. Versions
+
+- ver 3.81 (Descember 10, 2012)
+  fix remaining problem of wrong redex finding
+  add menu 'load macro'
+  add drawing multi-edge to reduction graph
 
 - ver 3.80 (Descember 6, 2012)
   fix wrong redex finding

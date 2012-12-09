@@ -15,8 +15,8 @@ import java.util.TreeMap;
 
 public class Environment
 {
-	public static final String APPLICATION_VERSION = "3.80";
-	public static final String RELEASE_DATE = "2012-12-06";
+	public static final String APPLICATION_VERSION = "3.81";
+	public static final String RELEASE_DATE = "2012-12-10";
 
 	public static final String PROPERTY_FILENAME = "properties.txt";
 
