@@ -105,6 +105,8 @@ public class Parser
 				throw new ParserException("Syntax error, missing ')'.", token);
 			}
 			return e;
+		default:
+			break;
 		}
 		throw new ParserException("Syntax error, unexpected token.", token);
 	}
