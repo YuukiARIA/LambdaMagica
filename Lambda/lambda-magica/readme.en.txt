@@ -1,6 +1,6 @@
 ﻿
 
-                  Lambda * Magica      ver 3.81
+                          Lambda * Magica
 
          Untyped Lambda Calculus Interpreter for Education
 
@@ -132,12 +132,16 @@
 
 4. Versions
 
-- ver 3.81 (Descember 10, 2012)
+- ver 3.82 (November 26, 2013)
+  Refactoring
+  Change to treat Yen sign (U+00A5) as backslash in the lexer
+
+- ver 3.81 (December 10, 2012)
   fix remaining problem of wrong redex finding
   add menu 'load macro'
   add drawing multi-edge to reduction graph
 
-- ver 3.80 (Descember 6, 2012)
+- ver 3.80 (December 6, 2012)
   fix wrong redex finding
   add setting of the number of continuation steps in auto-mode
   improve graph panel and optimize animation algorithm

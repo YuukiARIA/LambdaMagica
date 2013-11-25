@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="Lambda Magica" basedir="." default="distribute">
 
-	<property name="version" value="3.81" />
+	<property name="version" value="3.82" />
 	<property name="product-name" value="lambda-magica-${version}" />
 
 	<property name="src" location="src" />
