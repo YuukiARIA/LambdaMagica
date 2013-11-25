@@ -52,7 +52,8 @@ public class Lexer
 			succ();
 			switch (c)
 			{
-			case '\\': return new Token("\\", TokenType.LAMBDA, col);
+			case '\\': case '\u00A5':
+				return new Token("\\", TokenType.LAMBDA, col);
 			case '.':  return new Token(".", TokenType.DOT, col);
 			case '(':  return new Token("(", TokenType.LPAR, col);
 			case ')':  return new Token(")", TokenType.RPAR, col);
