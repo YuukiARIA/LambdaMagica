@@ -77,9 +77,15 @@ public class Main
 
 		updateUIFontAddition();
 
-		mainFrame = new MainFrame();
-		mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		mainFrame.setLocationRelativeTo(null);
-		mainFrame.setVisible(true);
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				mainFrame = new MainFrame();
+				mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+				mainFrame.setLocationRelativeTo(null);
+				mainFrame.setVisible(true);
+			}
+		});
 	}
 }
