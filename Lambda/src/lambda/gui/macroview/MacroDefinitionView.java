@@ -27,13 +27,7 @@ public class MacroDefinitionView extends JPanel
 	{
 		setLayout(new BorderLayout());
 
-		tableModel = new DefaultTableModel()
-		{
-			public boolean isCellEditable(int row, int column)
-			{
-				return false;
-			}
-		};
+		tableModel = new UnmodifiableTableModel();
 		tableModel.addColumn("Name");
 		tableModel.addColumn("Definition");
 		macroTable = new JTable(tableModel);
