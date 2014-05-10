@@ -13,6 +13,22 @@ final class Token
 		this.column = column;
 	}
 
+	public boolean equals(Object o)
+	{
+		if (o == this) return true;
+		if (o instanceof Token)
+		{
+			Token t = (Token)o;
+			return column == t.column && text.equals(t.text) && type == t.type;
+		}
+		return false;
+	}
+
+	public int hashCode()
+	{
+		return 17 * (column ^ 31 * text.hashCode()) ^ type.hashCode();
+	}
+
 	public String toString()
 	{
 		return "'" + text + "':" + type;
