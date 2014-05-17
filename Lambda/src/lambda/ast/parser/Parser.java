@@ -34,7 +34,7 @@ public class Parser
 			{
 				String id = token.text;
 				next();
-				return absList().abstractWithName(id);
+				return absList().abs(id);
 			}
 			if (token.type == TokenType.DOT)
 			{
@@ -51,7 +51,7 @@ public class Parser
 		{
 			String id = token.text;
 			next();
-			return absList().abstractWithName(id);
+			return absList().abs(id);
 		}
 		if (token.type == TokenType.DOT)
 		{
@@ -67,7 +67,7 @@ public class Parser
 		TokenType t = token.type;
 		while (t == TokenType.ID || t == TokenType.LPAR || t == TokenType.MACRONAME)
 		{
-			e = e.applyTo(atomic());
+			e = e.app(atomic());
 			t = token.type;
 		}
 		return e;

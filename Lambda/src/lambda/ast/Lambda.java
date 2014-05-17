@@ -33,12 +33,12 @@ public abstract class Lambda
 		return isMacro() || isLiteral();
 	}
 
-	public Lambda applyTo(Lambda x)
+	public Lambda app(Lambda x)
 	{
 		return new ASTApply(this, x);
 	}
 
-	public Lambda abstractWithName(String name)
+	public Lambda abs(String name)
 	{
 		return new ASTAbstract(name, name, this);
 	}
