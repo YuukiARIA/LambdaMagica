@@ -33,6 +33,26 @@ public abstract class Lambda
 		return isMacro() || isLiteral();
 	}
 
+	public Lambda applyTo(Lambda x)
+	{
+		return new ASTApply(this, x);
+	}
+
+	public Lambda abstractWithName(String name)
+	{
+		return new ASTAbstract(name, name, this);
+	}
+
+	public static Lambda literal(String name)
+	{
+		return new ASTLiteral(name);
+	}
+
+	public static Lambda macro(String name)
+	{
+		return new ASTMacro(name);
+	}
+
 	protected abstract Lambda substitute(IDContext context, String name, Lambda lambda);
 
 	public abstract void accept(Visitor visitor);
