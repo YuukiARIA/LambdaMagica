@@ -2,10 +2,6 @@ package lambda.ast.parser;
 
 import java.util.Scanner;
 
-import lambda.ast.ASTAbstract;
-import lambda.ast.ASTApply;
-import lambda.ast.ASTLiteral;
-import lambda.ast.ASTMacro;
 import lambda.ast.Lambda;
 
 public class Parser
@@ -38,7 +34,7 @@ public class Parser
 			{
 				String id = token.text;
 				next();
-				return new ASTAbstract(id, id, absList());
+				return absList().abstractWithName(id);
 			}
 			if (token.type == TokenType.DOT)
 			{
@@ -55,7 +51,7 @@ public class Parser
 		{
 			String id = token.text;
 			next();
-			return new ASTAbstract(id, id, absList());
+			return absList().abstractWithName(id);
 		}
 		if (token.type == TokenType.DOT)
 		{
@@ -71,7 +67,7 @@ public class Parser
 		TokenType t = token.type;
 		while (t == TokenType.ID || t == TokenType.LPAR || t == TokenType.MACRONAME)
 		{
-			e = new ASTApply(e, atomic());
+			e = e.applyTo(atomic());
 			t = token.type;
 		}
 		return e;
@@ -85,13 +81,13 @@ public class Parser
 		{
 			String name = token.text;
 			next();
-			return new ASTLiteral(name);
+			return Lambda.literal(name);
 		}
 		case MACRONAME:
 		{
 			String name = token.text;
 			next();
-			return new ASTMacro(name);
+			return Lambda.macro(name);
 		}
 		case LPAR:
 			next();
