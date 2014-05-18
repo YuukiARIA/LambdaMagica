@@ -82,4 +82,24 @@ public class ASTAbstract extends Lambda implements IRedexNode
 	{
 		return visitor.visit(this, param);
 	}
+
+	// TODO: originalNameの扱いを考える
+	public boolean equals(Object o)
+	{
+		if (o == this)
+		{
+			return true;
+		}
+		if (o instanceof ASTAbstract)
+		{
+			ASTAbstract abs = (ASTAbstract)o;
+			return name.equals(abs.name) && e.equals(abs.e);
+		}
+		return false;
+	}
+
+	public int hashCode()
+	{
+		return 17 * name.hashCode() + e.hashCode();
+	}
 }

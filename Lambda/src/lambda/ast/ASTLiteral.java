@@ -50,4 +50,24 @@ public class ASTLiteral extends Lambda
 	{
 		return visitor.visit(this, param);
 	}
+
+	// TODO: originalNameの扱いを考える
+	public boolean equals(Object o)
+	{
+		if (o == this)
+		{
+			return true;
+		}
+		if (o instanceof ASTLiteral)
+		{
+			ASTLiteral l = (ASTLiteral)o;
+			return name.equals(l.name);
+		}
+		return false;
+	}
+
+	public int hashCode()
+	{
+		return 17 * name.hashCode();
+	}
 }

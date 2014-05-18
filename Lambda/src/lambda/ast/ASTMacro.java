@@ -43,4 +43,23 @@ public class ASTMacro extends Lambda implements IRedexNode
 	{
 		return visitor.visit(this, param);
 	}
+
+	public boolean equals(Object o)
+	{
+		if (o == this)
+		{
+			return true;
+		}
+		if (o instanceof ASTMacro)
+		{
+			ASTMacro m = (ASTMacro)o;
+			return name.equals(m.name);
+		}
+		return false;
+	}
+
+	public int hashCode()
+	{
+		return 31 * name.hashCode();
+	}
 }

@@ -47,4 +47,23 @@ public class ASTApply extends Lambda implements IRedexNode
 	{
 		return visitor.visit(this, param);
 	}
+
+	public boolean equals(Object o)
+	{
+		if (o == this)
+		{
+			return true;
+		}
+		if (o instanceof ASTApply)
+		{
+			ASTApply app = (ASTApply)o;
+			return lexpr.equals(app.lexpr) && rexpr.equals(app.rexpr);
+		}
+		return false;
+	}
+
+	public int hashCode()
+	{
+		return 17 * lexpr.hashCode() + rexpr.hashCode();
+	}
 }
