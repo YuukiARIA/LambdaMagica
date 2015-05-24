@@ -6,7 +6,7 @@ EXECUTABLE=${CONTENTS}/MacOS/run.sh
 
 ant jar
 
-mkdir -p ${CONTENTS}/MacOS ${CONTENTS}/
+mkdir -p ${CONTENTS}/MacOS ${CONTENTS}/Resources
 
 cat <<'EOF' > ${EXECUTABLE}
 #!/bin/sh
