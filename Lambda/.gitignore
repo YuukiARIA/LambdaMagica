@@ -2,3 +2,6 @@
 /properties.txt
 /product
 /lambda-magica/lm.jar
+
+*.app
+*~
