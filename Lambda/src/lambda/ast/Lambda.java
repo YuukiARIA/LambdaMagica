@@ -102,4 +102,46 @@ public abstract class Lambda
 		public TRet visit(ASTLiteral l, TParam param);
 		public TRet visit(ASTMacro m, TParam param);
 	}
+
+	public static class Traverser implements Visitor
+	{
+		public void visit(ASTAbstract abs)
+		{
+			onAbstract(abs);
+			abs.e.accept(this);
+		}
+
+		public void visit(ASTApply app)
+		{
+			onApply(app);
+			app.lexpr.accept(this);
+			app.rexpr.accept(this);
+		}
+
+		public void visit(ASTLiteral l)
+		{
+			onLiteral(l);
+		}
+
+		public void visit(ASTMacro m)
+		{
+			onMacro(m);
+		}
+
+		public void onAbstract(ASTAbstract abs)
+		{
+		}
+
+		public void onApply(ASTApply app)
+		{
+		}
+
+		public void onLiteral(ASTLiteral l)
+		{
+		}
+
+		public void onMacro(ASTMacro m)
+		{
+		}
+	}
 }
