@@ -5,7 +5,9 @@
 	<property name="product-name" value="lambda-magica-${version}" />
 
 	<property name="src" location="src" />
-	<property name="bin" location="bin" />
+	<property name="src.test" location="test" />
+	<property name="classes.main" location="classes/main" />
+	<property name="classes.test" location="classes/test" />
 	<property name="dist" value="lambda-magica" />
 	<property name="dir.dist" location="product" />
 
@@ -17,8 +19,15 @@
 	<property name="dist-tgz" value="${product-name}.tar.gz" />
 	<property name="dist-zip" value="${product-name}.zip" />
 
+	<path id="test.classpath">
+		<pathelement location="${classes.main}" />
+		<pathelement location="./lib/junit.jar" />
+		<pathelement location="./lib/hamcrest-core.jar" />
+	</path>
+
 	<target name="mkdir">
-		<mkdir dir="${bin}" />
+		<mkdir dir="${classes.main}" />
+		<mkdir dir="${classes.test}" />
 	</target>
 
 	<target name="mkdir_dist">
@@ -30,13 +39,21 @@
 	</target>
 
 	<target name="compile" depends="mkdir">
-		<javac srcdir="${src}" destdir="${bin}" encoding="${java.encoding}"
+		<javac srcdir="${src}" destdir="${classes.main}" encoding="${java.encoding}"
 			target="${java.target.version}" source="${java.source.version}"
 			includeantruntime="false" />
 	</target>
 
+	<target name="compile-for-test" depends="mkdir,compile">
+		<javac srcdir="${src.test}" destdir="${classes.test}" encoding="${java.encoding}"
+			target="${java.target.version}" source="${java.source.version}"
+			includeantruntime="false">
+			<classpath refid="test.classpath" />
+		</javac>
+	</target>
+
 	<target name="jar" depends="mkdir_dist,compile">
-		<jar destfile="${dist}/${target-jar}" basedir="${bin}" compress="true" update="false">
+		<jar destfile="${dist}/${target-jar}" basedir="${classes.main}" compress="true" update="false">
 			<manifest>
 				<attribute name="Main-Class" value="lambda.gui.Main" />
 			</manifest>
@@ -60,8 +77,24 @@
 	<target name="distribute" depends="dist,zip">
 	</target>
 
+	<target name="junit" depends="compile-for-test">
+		<junit haltonfailure="yes">
+			<formatter type="plain" usefile="false" />
+			<classpath>
+				<path refid="test.classpath" />
+				<pathelement location="${classes.test}" />
+			</classpath>
+			<batchtest>
+				<fileset dir="${classes.test}">
+					<include name="**/*.class" />
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+
 	<target name="clean">
-		<delete dir="${bin}" />
+		<delete dir="${classes.main}" />
+		<delete dir="${classes.test}" />
 		<delete file="${dist}/${target-jar}" />
 	</target>
 
