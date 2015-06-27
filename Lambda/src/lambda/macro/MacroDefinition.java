@@ -29,6 +29,11 @@ public class MacroDefinition
 		return previous;
 	}
 
+	public Lambda getDefinition(String name)
+	{
+		return macros.get(name);
+	}
+
 	public Lambda expandMacro(String name)
 	{
 		Lambda l = macros.get(name);
