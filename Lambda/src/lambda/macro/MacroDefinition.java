@@ -15,9 +15,18 @@ public class MacroDefinition
 		macros.clear();
 	}
 
-	public void defineMacro(String name, Lambda lambda)
+	public Lambda defineMacro(String name, Lambda lambda)
 	{
-		macros.put(name, lambda);
+		Lambda previous;
+		if (lambda == null)
+		{
+			previous = macros.remove(name);
+		}
+		else
+		{
+			previous = macros.put(name, lambda);
+		}
+		return previous;
 	}
 
 	public Lambda expandMacro(String name)
