@@ -11,7 +11,8 @@ mkdir -p ${CONTENTS}/MacOS ${CONTENTS}/Resources
 cat <<'EOF' > ${EXECUTABLE}
 #!/bin/sh
 DIR=`dirname $0`
-java -Xdock:name="Lambda * Magica" -Dapple.laf.useScreenMenuBar=true -jar $DIR/lm.jar &
+APP_ROOT=${DIR}/../../..
+java -Xdock:name="Lambda * Magica" -Dapple.laf.useScreenMenuBar=true -Duser.dir=${APP_ROOT} -jar $DIR/lm.jar &
 EOF
 
 chmod +x ${EXECUTABLE}
