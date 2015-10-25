@@ -12,7 +12,11 @@ cat <<'EOF' > ${EXECUTABLE}
 #!/bin/sh
 DIR=`dirname $0`
 APP_ROOT=${DIR}/../../..
-java -Xdock:name="Lambda * Magica" -Dapple.laf.useScreenMenuBar=true -Duser.dir=${APP_ROOT} -jar $DIR/lm.jar &
+java \
+  -Xdock:name="LambdaMagica"         \
+  -Dapple.laf.useScreenMenuBar=true  \
+  -Duser.dir="${APP_ROOT}"           \
+  -jar ${DIR}/lm.jar &
 EOF
 
 chmod +x ${EXECUTABLE}
