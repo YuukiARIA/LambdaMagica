@@ -11,6 +11,11 @@ fi
 OUTPUT_DIR=${CD}/product
 APP_ROOT=${OUTPUT_DIR}/LambdaMagica.app
 
+if [ -e ${APP_ROOT} ]; then
+  echo "Deleting existing ${APP_ROOT}"
+  rm -r ${APP_ROOT}
+fi
+
 CONTENTS=${APP_ROOT}/Contents
 EXECUTABLE=${CONTENTS}/MacOS/run.sh
 
