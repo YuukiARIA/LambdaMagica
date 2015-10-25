@@ -18,6 +18,7 @@
 	<property name="target-jar" value="lm.jar" />
 	<property name="dist-tgz" value="${product-name}.tar.gz" />
 	<property name="dist-zip" value="${product-name}.zip" />
+	<property name="dist-osx-name" value="${product-name}-osx" />
 
 	<path id="test.classpath">
 		<pathelement location="${classes.main}" />
@@ -60,6 +61,10 @@
 		</jar>
 	</target>
 
+	<target name="build-osx-app" depends="jar">
+		<exec executable="./build-mac-app.sh"></exec>
+	</target>
+
 	<target name="dist" depends="mkdir_dist,mkdir_product,jar">
 		<tar tarfile="${dir.dist}/${dist-tgz}" compression="gzip">
 			<tarfileset dir="." includes="${dist}/*.sh,${dist}/*.bat" mode="755" />
@@ -70,6 +75,24 @@
 	<target name="zip" depends="mkdir_dist,mkdir_product,jar">
 		<zip destfile="${dir.dist}/${dist-zip}" encoding="UTF-8">
 			<zipfileset dir="." includes="${dist}/*.sh,${dist}/*.bat" filemode="755" />
+			<zipfileset dir="." includes="${dist}/**" excludes="**/*.sh,**/*.bat" />
+		</zip>
+	</target>
+
+	<target name="dist-osx-tgz" depends="mkdir_dist,mkdir_product,build-osx-app">
+		<tar destfile="${dir.dist}/${dist-osx-name}.tgz" compression="gzip">
+			<tarfileset dir="product" includes="LambdaMagica.app/**/*" excludes="**/*.sh" prefix="lambda-magica" />
+			<tarfileset dir="product" includes="LambdaMagica.app/**/*.sh" prefix="lambda-magica" mode="755" />
+			<tarfileset dir="." includes="${dist}/*.sh" mode="755" />
+			<tarfileset dir="." includes="${dist}/**" excludes="**/*.sh,**/*.bat" />
+		</tar>
+	</target>
+
+	<target name="dist-osx-zip" depends="mkdir_dist,mkdir_product,build-osx-app">
+		<zip destfile="${dir.dist}/${dist-osx-name}.zip" encoding="UTF-8">
+			<zipfileset dir="product" includes="LambdaMagica.app/**/*" excludes="**/*.sh" prefix="lambda-magica" />
+			<zipfileset dir="product" includes="LambdaMagica.app/**/*.sh" prefix="lambda-magica" filemode="755" />
+			<zipfileset dir="." includes="${dist}/*.sh" filemode="755" />
 			<zipfileset dir="." includes="${dist}/**" excludes="**/*.sh,**/*.bat" />
 		</zip>
 	</target>
