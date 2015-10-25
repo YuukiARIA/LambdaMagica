@@ -14,13 +14,13 @@ mkdir -p ${CONTENTS}/MacOS ${CONTENTS}/Resources
 
 cat <<'EOF' > ${EXECUTABLE}
 #!/bin/sh
-DIR=$(cd `dirname $0`; pwd)
-APP_ROOT=$(cd ${DIR}/../../..; pwd)
+CD=$(cd `dirname $0`; pwd)
+APP_ROOT=$(cd ${CD}/../../..; pwd)
 java \
   -Xdock:name="LambdaMagica"         \
   -Dapple.laf.useScreenMenuBar=true  \
   -Duser.dir="${APP_ROOT}"           \
-  -jar ${DIR}/lm.jar &
+  -jar ${CD}/lm.jar &
 EOF
 
 chmod +x ${EXECUTABLE}
