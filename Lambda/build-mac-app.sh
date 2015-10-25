@@ -2,18 +2,22 @@
 
 CD=$(cd `dirname $0`; pwd)
 
+JAR=${CD}/lambda-magica/lm.jar
+if [ ! -e ${JAR} ]; then
+  echo "Error: lm.jar not found. Run 'ant jar' first."
+  exit 1
+fi
+
 OUTPUT_DIR=${CD}/product
 APP_ROOT=${OUTPUT_DIR}/LambdaMagica.app
 
 CONTENTS=${APP_ROOT}/Contents
 EXECUTABLE=${CONTENTS}/MacOS/run.sh
 
-ant jar
-
 mkdir -p ${CONTENTS}/MacOS ${CONTENTS}/Resources
 
 cp assets/osx/run.sh ${EXECUTABLE}
 chmod +x ${EXECUTABLE}
 
-cp lambda-magica/lm.jar ${CONTENTS}/MacOS
+cp ${JAR} ${CONTENTS}/MacOS
 cp assets/osx/Info.plist ${CONTENTS}
