@@ -1,7 +1,11 @@
 #!/bin/sh
 
-APP_NAME="LambdaMagica.app"
-CONTENTS=${APP_NAME}/Contents
+CD=$(cd `dirname $0`; pwd)
+
+OUTPUT_DIR=${CD}/product
+APP_ROOT=${OUTPUT_DIR}/LambdaMagica.app
+
+CONTENTS=${APP_ROOT}/Contents
 EXECUTABLE=${CONTENTS}/MacOS/run.sh
 
 ant jar
@@ -23,7 +27,7 @@ chmod +x ${EXECUTABLE}
 
 cp lambda-magica/lm.jar ${CONTENTS}/MacOS
 
-cat <<EOF > ${APP_NAME}/Contents/Info.plist
+cat <<EOF > ${CONTENTS}/Info.plist
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
