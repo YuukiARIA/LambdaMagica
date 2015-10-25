@@ -10,8 +10,8 @@ mkdir -p ${CONTENTS}/MacOS ${CONTENTS}/Resources
 
 cat <<'EOF' > ${EXECUTABLE}
 #!/bin/sh
-DIR=`dirname $0`
-APP_ROOT=${DIR}/../../..
+DIR=$(cd `dirname $0`; pwd)
+APP_ROOT=$(cd ${DIR}/../../..; pwd)
 java \
   -Xdock:name="LambdaMagica"         \
   -Dapple.laf.useScreenMenuBar=true  \
