@@ -711,7 +711,12 @@ public class MainFrame extends JFrame
 		try
 		{
 			Lambda lambda = Lambda.parse(expr);
-			macros.defineMacro(name, lambda);
+
+			if (!tryDefineMacro(name, lambda))
+			{
+				return;
+			}
+
 			macroView.addMacro(name, lambda);
 			println(String.format("- <%s> is defined as %s", name, lambda));
 
@@ -726,6 +731,24 @@ public class MainFrame extends JFrame
 		{
 			println("- " + e.getMessage());
 		}
+	}
+
+	private boolean tryDefineMacro(String name, Lambda lambda)
+	{
+		Lambda previous = macros.defineMacro(name, lambda);
+
+		Set<String> cyclicMacroNames = macros.detectRecursiveDefinitions();
+		if (!cyclicMacroNames.isEmpty())
+		{
+			println(String.format("- Error: %s contains recursive definition", name));
+			for (String macroName : cyclicMacroNames)
+			{
+				println(String.format("-- %s = %s", macroName, macros.getDefinition(macroName)));
+			}
+			macros.defineMacro(name, previous);
+			return false;
+		}
+		return true;
 	}
 
 	private void readMacro(String line)
