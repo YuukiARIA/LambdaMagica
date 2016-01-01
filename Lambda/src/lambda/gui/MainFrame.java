@@ -125,6 +125,7 @@ public class MainFrame extends JFrame
 			public void actionPerformed(ActionEvent e)
 			{
 				processInput();
+				buttonStep.requestFocusInWindow();
 			}
 		});
 		inputPanel.add(inputField, BorderLayout.CENTER);
