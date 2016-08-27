@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="ja" xml:lang="ja">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+<title>Lambda * Magica - Untyped Lambda Calculus Interpreter</title>
+
+<meta name="description" content="Lambda * Magica, an untyped lambda calculus interpreter for education" />
+<meta name="keywords" content="Lambda Magica,Lambda,lambda,interpreter,ラムダ計算,ラムダマギカ,インタプリタ,untyped,magica" />
+<meta name="Author" content="YuukiARIA" />
+<meta name="Copyright" content="Copyright (C) 2011-2013 Yuuki.S All Rights Reserved." />
+
+<style type="text/css">
+<!--
+
+img {
+  border-style: none;
+}
+
+table.files {
+  border-collapse: collapse;
+  border-width: 1px;
+}
+
+table.files tr td {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #aaaaaa;
+  padding: 2px 10px 2px 10px;
+}
+
+table.version {
+  border-collapse: collapse;
+  border-width: 1px;
+  font-size: small;
+}
+
+table.wide {
+  border-collapse: collapse;
+  border-width: 1px;
+}
+
+table.wide tr td {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #aaaaaa;
+  padding: 10px;
+}
+
+table.version tr td {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #aaaaaa;
+  padding: 0px 10px 0px 10px;
+}
+
+body {
+  background-color: #fff5f5;
+}
+
+h4 {
+  border-width: 0px 0px 1px 8px;
+  border-style: solid;
+  border-color: #ffaaaa;
+  padding: 2px 0px 2px 4px;
+}
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+pre.console {
+  color: white;
+  background-color: black;
+  padding: 10px 10px 10px 10px;
+  margin: 0px 100px 0px 100px;
+}
+
+.last_update {
+  color: #ffaaaa;
+  font-style: italic;
+  font-size: small;
+  text-align: right;
+}
+
+-->
+</style>
+
+</head>
+
+<body>
+
+<div class="last_update">Last Update: 2015-10-31</div>
+
+<h2>Lambda * Magica</h2>
+<h3>Untyped Lambda Calculus Interpreter for Education</h3>
+
+<h4>※Mac OSにおける円記号とバックスラッシュについて (About the problem of backslash in Mac OS with japanese keyboard)</h4>
+<p>
+まず、UTF-8では円記号 (U+00A5, &#xA5;) とバックスラッシュ (U+005C, &#x5C;) が別の文字として扱われるようになりました。</p>
+<p>
+Mac OSではデフォルトの文字コードがUTF-8で、日本語配列のキーボードを使用している場合はバックスラッシュキーを
+押すとデフォルトでは円記号が入力されるようです。
+日本語配列キーボードでは、<span style="color:red;">option(alt)キーを押しながら円記号の書かれているキーを押す</span>ことで
+バックスラッシュが入力できるようです。</p>
+<p>なお、英字配列キーボードには「バックスラッシュキー」が存在し、そのままバックスラッシュが入力できます。</p>
+<p>プログラム内で円記号を自動的にバックスラッシュに置換してしまうかは検討中です。</p>
+
+<p>[追記] バージョン3.82において、円記号をバックスラッシュとして扱うように修正しました。</p>
+
+<h4>Downloads</h4>
+
+<p>[NOTE] The whole contents of *.tar.gz and *.zip are currently same.</p>
+
+<h5>The latest version 3.82 (2013-11-26)</h5>
+<table class="files">
+  <tr>
+    <td>Linux/Mac OS</td>
+    <td><a href="lambda-magica-3.82.tar.gz">lambda-magica-3.82.tar.gz</a></td>
+  </tr>
+  <tr>
+    <td>Windows</td>
+    <td><a href="lambda-magica-3.82.zip">lambda-magica-3.82.zip</a></td>
+  </tr>
+</table>
+
+<h5>Older versions</h5>
+
+<table class="files">
+  <tr>
+    <td style="text-align:center;">Version</td>
+    <td style="text-align:center;">OS</td>
+    <td style="text-align:center;">File</td>
+  </tr>
+
+  <tr>
+    <td rowspan="2">version 3.81 (2012-12-10)</td>
+    <td>Linux/Mac OS</td>
+    <td><a href="lambda-magica-3.81.tar.gz">lambda-magica-3.81.tar.gz</a></td>
+  </tr>
+  <tr>
+    <td>Windows</td>
+    <td><a href="lambda-magica-3.81.zip">lambda-magica-3.81.zip</a></td>
+  </tr>
+
+  <tr>
+    <td rowspan="2">version 3.80 (2012-12-06)</td>
+    <td>Linux/Mac OS</td>
+    <td><a href="lambda-magica-3.80.tar.gz">lambda-magica-3.80.tar.gz</a></td>
+  </tr>
+  <tr>
+    <td>Windows</td>
+    <td><a href="lambda-magica-3.80.zip">lambda-magica-3.80.zip</a></td>
+  </tr>
+
+  <tr>
+    <td rowspan="2">version 3.72 (2012-12-04)</td>
+    <td>Linux/Mac OS</td>
+    <td><a href="lambda-magica-3.72.tar.gz">lambda-magica-3.72.tar.gz</a></td>
+  </tr>
+  <tr>
+    <td>Windows</td>
+    <td><a href="lambda-magica-3.72.zip">lambda-magica-3.72.zip</a></td>
+  </tr>
+
+  <tr>
+    <td rowspan="2">version 3.71 (2012-11-29)</td>
+    <td>Linux/Mac OS</td>
+    <td><a href="lambda-magica-3.71.tar.gz">lambda-magica-3.71.tar.gz</a></td>
+  </tr>
+  <tr>
+    <td>Windows</td>
+    <td><a href="lambda-magica-3.71.zip">lambda-magica-3.71.zip</a></td>
+  </tr>
+
+  <tr>
+    <td rowspan="2">version 3.70 (2012-11-26)</td>
+    <td>Linux/Mac OS</td>
+    <td><a href="lambda-magica-3.70.tar.gz">lambda-magica-3.70.tar.gz</a></td>
+  </tr>
+  <tr>
+    <td>Windows</td>
+    <td><a href="lambda-magica-3.70.zip">lambda-magica-3.70.zip</a></td>
+  </tr>
+
+  <tr>
+    <td rowspan="2">version 3.60 (2012-11-23)</td>
+    <td>Linux/Mac OS</td>
+    <td><a href="lambda-magica-3.60.tar.gz">lambda-magica-3.60.tar.gz</a></td>
+  </tr>
+  <tr>
+    <td>Windows</td>
+    <td><a href="lambda-magica-3.60.zip">lambda-magica-3.60.zip</a></td>
+  </tr>
+
+  <tr>
+    <td rowspan="2">version 3.50 (2012-11-21)</td>
+    <td>Linux/Mac OS</td>
+    <td><a href="lambda-magica-3.50.tar.gz">lambda-magica-3.50.tar.gz</a></td>
+  </tr>
+  <tr>
+    <td>Windows</td>
+    <td><a href="lambda-magica-3.50.zip">lambda-magica-3.50.zip</a></td>
+  </tr>
+
+  <tr>
+    <td rowspan="2">version 3.00 (2012-11-15)</td>
+    <td>Linux/Mac OS</td>
+    <td><a href="lambda-magica-3.00.tar.gz">lambda-magica-3.00.tar.gz</a></td>
+  </tr>
+  <tr>
+    <td>Windows</td>
+    <td><a href="lambda-magica-3.00.zip">lambda-magica-3.00.zip</a></td>
+  </tr>
+
+</table>
+
+<h5>Install/Run (Linux)</h5>
+<pre class="console">wget http://www.ueda.info.waseda.ac.jp/~shinobu/lambda-magica/lambda-magica-3.82.tar.gz
+tar xvzf lambda-magica-3.82.tar.gz
+cd lambda-magica
+./run.sh</pre>
+
+<h4>Source Code</h4>
+<p>GitHub Repository: <a href="https://github.com/YuukiARIA/LambdaMagica">https://github.com/YuukiARIA/LambdaMagica</a></p>
+
+<h4>Shortcut Keys</h4>
+
+<table class="wide">
+  <tr>
+    <td>ctrl + +</td>
+    <td>magnify font size</td>
+  </tr>
+  <tr>
+    <td>ctrl + -</td>
+    <td>minify font size</td>
+  </tr>
+  <tr>
+    <td>ctrl + 0</td>
+    <td>default font size</td>
+  </tr>
+  <tr>
+    <td>shift + enter</td>
+    <td>step backward (version >= 3.71)</td>
+  </tr>
+</table>
+
+<h4>Screen Shots</h4>
+<table align="center" style="table-layout:fixed;width:100%;border-spacing:10px;">
+  <tr>
+    <td width="40%">
+      <a href="./images/screen1.png">
+        <img src="./images/screen1.png" width="100%" />
+      </a>
+    </td>
+    <td>
+      <ol>
+        <li>Input field (with histories by up/down keys)</li>
+        <li>Output area</li>
+        <li>System message area</li>
+        <li>Enable auto-reduction if checked</li>
+        <li>Print steps in auto-reduction if checked</li>
+        <li>Number of continuation steps</li>
+        <li>Resume auto-reduction when execution is suspended</li>
+        <li>Stop auto-reduction</li>
+        <li>Enable eta-reduction if checked</li>
+        <li>Print each step if checked</li>
+        <li>Print beta/eta character if checked (the character may not be displayed correct depending on selected font)</li>
+        <li>Limit each output line upto 80 characters</li>
+        <li>Show data as a natural number and/or boolean value if possible</li>
+        <li>Generate LaTeX math-mode source</li>
+        <li>Clear output</li>
+        <li>Clear all currently defined macros</li>
+      </ol>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="./images/screen2.png">
+        <img src="./images/screen2.png" width="100%" />
+      </a>
+    </td>
+    <td>
+      <p>Redex selection view.</p>
+      <p>All beta/eta-redexes (and macro expansion) are enumerated in here.</p>
+      <p>The redexes colored red and blue represent beta-redexes. And similarly yellows are eta-redexes, greens are macro expansion.</p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="./images/screen3.png">
+        <img src="./images/screen3.png" width="100%" />
+      </a>
+    </td>
+    <td>
+      <p>Reduction graph (experimental).</p>
+      <p>Input lambda expression and click start to initiate state search.</p>
+      <p>The graph is dynamically constructed, layouted, and drawn.</p>
+      <p>Any macros contained in the input lambda term are expanded recursively before starting.
+      The reduction search will not begin if undefined macros are contained in the input.</p>
+    </td>
+  </tr>
+</table>
+
+<center>
+<p><img src="lambda_latex.png" /></p>
+<p>LaTeX translation example (version >= 3.71)</p>
+</center>
+
+<h4>Chronicle</h4>
+<table class="version">
+  <tr>
+    <td style="text-align:center;">Version</td>
+    <td style="text-align:center;">Release Date</td>
+    <td style="text-align:center;">Descriptions</td>
+  </tr>
+
+  <tr>
+    <td>3.82</td>
+    <td>November 26, 2013</td>
+    <td>
+      <ul>
+        <li>リファクタリング。</li>
+        <li>字句解析処理において円記号（U+00A5）をバックスラッシュとして扱うように変更。</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>3.81</td>
+    <td>December 10, 2012</td>
+    <td>
+      <ul>
+        <li>簡約基の識別が正しくなかった不具合について，マクロ展開に関して直っていなかったのを修正。</li>
+        <li>メニュー項目にマクロ読み込み (load macro) を追加。</li>
+        <li>簡約グラフ (Reduction Graph) に多重エッジ描画機能を追加。</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>3.80</td>
+    <td>December 6, 2012</td>
+    <td>
+      <ul>
+        <li>簡約基の識別が正しくなかった不具合を修正。</li>
+        <li>オートモードにおける連続実行ステップ数を設定できるようにした。</li>
+        <li>グラフパネルの整備とアニメーション機構の最適化。</li>
+        <li>ラムダ状態グラフ探索機能を実装及びGUIモードに統合。</li>
+        <li>起動時にデッドロックが稀に生じることがある不具合を修正。これに伴って起動時間が長くなった可能性がある。</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>3.72</td>
+    <td>December 4, 2012</td>
+    <td>
+      <ul>
+        <li>オートモード実行後にオートモードが動かなくなることがある不具合を修正。</li>
+        <li>誤ったη-簡約（λf.fx → f など）が行われてしまう不具合を修正。</li>
+        <li>簡約による遷移の矢印記号を、簡約とマクロ展開を区別するように変更。</li>
+        <li>マクロ展開を簡約ステップ数としてカウントしないように変更。</li>
+        <li>LaTeX出力に簡約箇所と遷移記号の区別を反映するようにした。</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>3.71</td>
+    <td>November 29, 2012</td>
+    <td>
+      <ul>
+        <li>ステップバック機能を追加。</li>
+        <li>LaTeX数式モードで出力する機能を追加。</li>
+        <li>マクロ定義テーブルの行高がフォントサイズに合わせて変わるように修正。</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>3.70</td>
+    <td>November 26, 2012</td>
+    <td>
+      <ul>
+        <li>η-簡約を実装。</li>
+        <li>全体的にいくつかの軽微なバグを修正。</li>
+        <li>全面的なリファクタリング。</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>3.60</td>
+    <td>November 23, 2012</td>
+    <td>
+      <ul>
+        <li>GUIモードの整備。デフォルトでGUIモードが起動するようにした。</li>
+        <li>フォントサイズを変えられるようにした。</li>
+        <li>行入力履歴を実装。</li>
+        <li>オートモードにおけるスタックオーバーフローを計算の発散として処理。</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>3.50</td>
+    <td>November 21, 2012</td>
+    <td>
+      <ul>
+        <li>GUIモードを大まかに実装。CUIモードの基本的な機能はこちらでも大体動くようになった。</li>
+        <li>簡約基の表示と選択を実装。</li>
+        <li>オート簡約モードを実装。</li>
+        <li>readme改訂。</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>3.00</td>
+    <td>November 15, 2012</td>
+    <td>
+      <ul>
+        <li>大幅にメンテナンス。</li>
+        <li>ラムダ抽象における変数を複数並べて書けるようになった。</li>
+        <li>表示周りや各機能のバグや不十分な部分を実運用に向けて整備。</li>
+        <li>内部で行うα-変換が上手くいかないことがある問題を修正。</li>
+        <li>readmeを公開向けの文体に修正。</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>2.40</td>
+    <td>November 3, 2011</td>
+    <td>
+      <ul>
+        <li>:l コマンドでファイルが読み込まれない不具合を修正。</li>
+        <li>特定の条件下でマクロが展開されず簡約が停止する不具合を修正。</li>
+        <li>システムコマンドの追加。</li>
+      </ul>
+    </td>
+  </tr>
+
+  <tr>
+    <td>2.35</td>
+    <td>November, 2011</td>
+    <td>
+      <ul>
+        <li>最初（バージョン履歴を残し始めたという意味での最初）</li>
+        <li>readmeを書いた。</li>
+        <li>入力に気を付けないと容易にバグる。</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+<p style="text-align:center;font-size:small;">&copy; 2011 YuukiARIA</p>
+
+<div style="height:500px"></div>
+
+<center>
+<img src="./images/lambda_chan_logo.png" />
+</center>
+
+</body>
+
+</html>
